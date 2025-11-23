@@ -86,16 +86,255 @@ Below is the complete roadmap of what Editron *can* and *must* deliver to be a l
 
 ---
 
-## 6. Inline Features
-- Bold / Italic / Underline / Strike  
-- Inline code  
-- Color picker  
-- Highlighting  
-- Smart links + SEO analysis  
-- Mentions (@users, tags, pages)  
-- Custom tooltips  
-- Emoji picker  
-- Smart paste (Word / Google Docs cleanup)  
+## 6. Inline Features — Full Expanded Set (Ultimate Version)
+
+Formatting
+
+Bold
+
+Italic
+
+Underline
+
+Strike
+
+Mono (inline code)
+
+Inline keyboard style (code tags with language highlight)
+
+Superscript / Subscript
+
+Small caps
+
+Text transform (uppercase, lowercase, capitalize)
+
+Smart quotes auto-correction
+
+Auto dash & punctuation normalization
+
+Zero-width character tools (for SEO & keyword gap tuning)
+
+Color & Style Tools
+
+Text color picker (palette + custom HEX/RGB)
+
+Background highlight picker
+
+Gradient inline text
+
+Highlight animation (keyword spotlight effect)
+
+Semantic color classes (success, warning, info, error)
+
+Inline theme presets (dark/light/muted/brand)
+
+Inline Media & Components
+
+Inline images (small emojis, tiny GIFs, badges)
+
+Inline SVG injection
+
+Inline icons (Lucide, Heroicons, Feather, custom set)
+
+Inline counters / pills
+
+Inline rating stars
+
+Inline badges (info, new, updated, hot)
+
+Smart Links
+
+Rich link preview (title + favicon + metadata)
+
+SEO analysis popup:
+
+nofollow/sponsored?
+
+anchor quality score
+
+keyword match score
+
+broken-link detection
+
+Internal linking assistant (pages، پست‌ها، دسته‌ها، تگ‌ها)
+
+Auto-convert plain URLs → smart links
+
+Link intent detection:
+
+external resource
+
+internal reference
+
+citation
+
+product
+
+affiliate
+
+UTM builder for marketing links
+
+Link sanitizer (removing tracking garbage)
+
+Mentions System
+
+@Users
+
+@Tags
+
+@Pages
+
+@Files
+
+@Components
+
+Mention type-based styling
+
+Mention hover cards (profile/info popup)
+
+Mention autocomplete ranking by recent interactions
+
+Inline Tooltips
+
+Custom text-based tooltips
+
+SEO glossary tooltips (تعاریف کلمات کلیدی)
+
+Auto-tooltip for abbreviations (HTML <abbr>)
+
+Tooltip themes (dark/light/meta)
+
+Tooltip position control
+
+Emoji & Symbols Tools
+
+Emoji picker (categorized + search)
+
+Custom emojis (upload SVG/PNG)
+
+Recently used emojis
+
+Unicode symbols palette
+
+Special characters panel (currency/technical/math)
+
+Inline GIF reactions (tiny GIF mode)
+
+Smart Insert & Conversion
+
+Smart paste from Word
+
+Smart paste from Google Docs
+
+Smart paste from Notion / Medium / Slack
+
+Clean-up engine:
+
+remove inline junk styles
+
+remove bloated spans
+
+normalize fonts
+
+auto-fix nesting
+
+Paste → auto-block detection:
+
+URLs → embeds
+
+code → code block
+
+tables → table block
+
+SEO-Oriented Inline Tools
+
+Keyword density live indicator (inline highlights)
+
+Auto-suggest LSI keywords
+
+Highlight "weak sentences"
+
+Highlight passive voice
+
+Inline readability hints
+
+AI rewrite tool (sentence-level)
+
+Inline grammar fix
+
+SEO score badge per paragraph
+
+Keyword intent tagging (primary, secondary, semantic)
+
+AI-Assisted Inline Command Palette
+
+(مثل Notion’s “/” + Github’s command-K)
+
+Rewrite text
+
+Expand text
+
+Compress text
+
+Translate inline
+
+Turn text → list / table / blockquote / code
+
+Summarize previous paragraph
+
+Continue writing
+
+Shortcuts & Productivity
+
+Slash menu (inline commands)
+
+Mark selection as reusable snippet
+
+Mark selection as template variable
+
+Inline undo history
+
+Inline bookmarks (anchor points)
+
+Inline find & replace with regex
+
+Developer-Level Inline Features
+
+Inline JSON validator
+
+Inline regex tester
+
+Inline REST endpoint preview (hover shows response)
+
+Inline schema references (API doc cards)
+
+Inline AI code review on selection
+
+Toggle between markdown / formatted view
+
+Collaboration & Workflow
+
+Inline comments
+
+Inline suggestions (Google Docs style)
+
+Inline change tracking
+
+Resolve/close comments
+
+Mention teammates inside comments
+
+Inline history timeline (per sentence)
+
+Accessibility Tools
+
+Inline contrast checker
+
+Auto-alt generator for inline images
+
+Screen-reader preview mode
+
+Highlight accessibility errors (WAI-ARIA violations)
 
 ---
 
