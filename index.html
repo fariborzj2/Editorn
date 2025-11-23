@@ -269,6 +269,44 @@
       .ce-delete-btn:hover {
         opacity: 1;
       }
+      .ce-ai-dialog {
+        position: absolute;
+        background: white;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        border-radius: 8px;
+        padding: 1rem;
+        z-index: 2000;
+        width: 250px;
+      }
+      .ce-ai-header {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        color: #6366f1;
+      }
+      .ce-ai-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .ce-ai-options button {
+        padding: 6px;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.2s;
+      }
+      .ce-ai-options button:hover {
+        background: #e0e7ff;
+        border-color: #6366f1;
+      }
+      .ce-ai-loading {
+        color: #64748b;
+        font-style: italic;
+        text-align: center;
+      }
     </style>
   </head>
   <body>

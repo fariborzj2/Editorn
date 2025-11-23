@@ -1,11 +1,11 @@
-# مستندات توسعه Editron (فاز ۱ تا ۸)
+# مستندات توسعه Editron (فاز ۱ تا ۹)
 
 این مستندات مراحل توسعه ویرایشگر متن **Editron** را شرح می‌دهد.
 
 ---
 
 ## ۱. مقدمه (Introduction)
-Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۸ فاز توسعه تکمیل شده است.
+Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۹ فاز توسعه تکمیل شده است.
 
 ---
 
@@ -14,45 +14,45 @@ Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا 
 src/
 ├── blocks/          # بلاک‌ها
 ├── core/            # هسته اصلی
-│   ├── BlockManager.ts
-│   ├── Editron.ts
-│   ├── PluginManager.ts
-│   └── Renderer.ts
 ├── plugins/         # پلاگین‌ها
 │   ├── SlashMenu.ts
 │   ├── InlineToolbar.ts
 │   ├── Autosave.ts
-│   └── Collaboration.ts # همکاری بلادرنگ (جدید)
+│   ├── Collaboration.ts
+│   └── AIAssistant.ts # دستیار هوشمند (جدید)
 ├── utils/           # ابزارها
 └── index.ts
 ```
 
 ---
 
-## ۳. قابلیت‌های فاز ۸ (جدید)
+## ۳. قابلیت‌های فاز ۹ (جدید)
 
-### ۳.۱. همکاری بلادرنگ (Real-time Collaboration)
-قابلیت همگام‌سازی تغییرات بین تب‌های مختلف مرورگر با استفاده از `BroadcastChannel` API.
-- **مکانیزم:** هر تغییری (افزودن، ویرایش، حذف) به عنوان یک رویداد (`block:add`, `block:change`, ...) پخش می‌شود.
-- **دریافت:** سایر تب‌ها پیام را دریافت کرده و تغییرات را روی `BlockManager` خود اعمال می‌کنند.
-- **حذف:** دکمه حذف (`×`) به هر بلاک اضافه شده تا امکان تست حذف همگام فراهم شود.
-
-> **نکته:** این پیاده‌سازی برای نمایش مفهوم (Proof of Concept) است و برای محیط تولید نیاز به سرور WebSocket و الگوریتم‌هایی مثل CRDT (مثلاً Yjs) دارد.
-
-### ۳.۲. بهبود سیستم رویدادها
-سیستم رویدادها برای ارسال جزئیات دقیق‌تر تغییرات (`granular updates`) بازنویسی شد تا پلاگین‌ها بدانند دقیقاً چه چیزی تغییر کرده است.
+### ۳.۱. دستیار هوشمند (AI Assistant Plugin)
+یک پلاگین قدرتمند برای انجام عملیات هوشمند روی متن.
+- **دسترسی:**
+  1. **Inline Toolbar:** با انتخاب متن و کلیک روی دکمه `✨ AI`.
+  2. **Slash Menu:** با تایپ `/` و انتخاب گزینه `Generate Text`.
+- **قابلیت‌ها:**
+  - **Summarize:** خلاصه‌سازی متن انتخاب شده.
+  - **Expand:** گسترش متن و افزودن جزئیات.
+  - **Fix Grammar:** اصلاح گرامری (Mock).
+  - **Make Funny:** بازنویسی متن به صورت طنز.
+- **پیاده‌سازی:** فعلاً از یک سرویس Mock استفاده می‌کند که با `setTimeout` تاخیر شبکه را شبیه‌سازی کرده و تغییرات ساده‌ای روی رشته ورودی اعمال می‌کند.
 
 ---
 
-## ۴. قابلیت‌های قبلی (فاز ۱-۷)
-- **Blocks:** Standard set + Table.
-- **UI:** Drag & Drop, Theming, Floating Tools.
-- **Core:** Event System, Autosave.
+## ۴. قابلیت‌های قبلی (فاز ۱-۸)
+- **Core:** Event System, Collaboration (BroadcastChannel), Drag & Drop.
+- **Blocks:** Paragraph, Header, List, Quote, Image, Divider, Code, Table.
+- **Tools:** Slash Menu, Inline Toolbar, Autosave, Theming.
+- **Exporters:** Markdown, HTML.
 
 ---
 
 ## ۶. وضعیت فعلی
 - ✅ Core Engine (Enhanced)
-- ✅ Collaboration (BroadcastChannel)
-- ✅ All Standard Blocks & Tools
-- ⏳ AI Integration (Next Step)
+- ✅ Collaboration
+- ✅ AI Integration (Mock)
+- ✅ All Standard Blocks
+- ⏳ Framework Adapters (Future)

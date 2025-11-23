@@ -3,6 +3,7 @@ import { SlashMenu } from './plugins/SlashMenu';
 import { InlineToolbar } from './plugins/InlineToolbar';
 import { Autosave } from './plugins/Autosave';
 import { Collaboration } from './plugins/Collaboration';
+import { AIAssistant } from './plugins/AIAssistant';
 import { Exporter } from './utils/Exporter';
 
 const editor = new Editron({
@@ -22,6 +23,7 @@ editor.pluginManager.register(new InlineToolbar());
 const autosave = new Autosave();
 editor.pluginManager.register(autosave);
 editor.pluginManager.register(new Collaboration());
+editor.pluginManager.register(new AIAssistant());
 
 editor.init();
 
