@@ -8,6 +8,7 @@ export class Paragraph implements IBlock {
   private editor: Editron;
 
   constructor(id: string, data: any, editor: Editron) {
+    console.log('Paragraph constructor data:', JSON.stringify(data));
     this.id = id;
     this.editor = editor;
     this.element = document.createElement('div');

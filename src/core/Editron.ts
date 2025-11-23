@@ -26,8 +26,25 @@ export class Editron extends EventEmitter {
     this.holder.classList.add('editron-editor');
 
     // Capture input events to detect content changes
-    this.holder.addEventListener('input', () => {
+    this.holder.addEventListener('input', (e) => {
         this.emit('change');
+
+        // Try to identify which block changed
+        const target = e.target as HTMLElement;
+        const blockWrapper = target.closest('.ce-block-wrapper') as HTMLElement;
+        if (blockWrapper && blockWrapper.dataset.blockId) {
+            const blockId = blockWrapper.dataset.blockId;
+            // We need to get the new content.
+            // This is expensive to save() everything.
+            // For granular sync, we might need the block instance to save just itself.
+            const block = this.blockManager.getBlockById(blockId);
+            if (block) {
+                this.emit('block:change', {
+                    id: blockId,
+                    content: block.save().content
+                });
+            }
+        }
     });
 
     // Initialize sub-systems
