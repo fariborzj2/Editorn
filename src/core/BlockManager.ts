@@ -2,6 +2,7 @@ import { Editron } from './Editron';
 import { IBlock, BlockData } from '../types';
 import { Paragraph } from '../blocks/Paragraph';
 import { Header } from '../blocks/Header';
+import { List } from '../blocks/List';
 
 export class BlockManager {
   private editor: Editron;
@@ -14,13 +15,14 @@ export class BlockManager {
     // Register default blocks
     this.register('paragraph', Paragraph);
     this.register('header', Header);
+    this.register('list', List);
   }
 
   register(type: string, blockClass: any) {
     this.registry.set(type, blockClass);
   }
 
-  addBlock(type: string, data: any = {}, focus: boolean = true): IBlock | null {
+  addBlock(type: string, data: any = {}, focus: boolean = true, afterBlockId?: string): IBlock | null {
     const BlockClass = this.registry.get(type);
     if (!BlockClass) {
       console.error(`Block type ${type} not registered`);
@@ -30,8 +32,21 @@ export class BlockManager {
     const id = crypto.randomUUID();
     const blockInstance: IBlock = new BlockClass(id, data, this.editor);
 
-    this.blocks.push(blockInstance);
-    this.editor.renderer.appendBlock(blockInstance);
+    if (afterBlockId) {
+        const index = this.blocks.findIndex(b => b.id === afterBlockId);
+        if (index !== -1) {
+            this.blocks.splice(index + 1, 0, blockInstance);
+            const prevBlock = this.blocks[index];
+            this.editor.renderer.insertBlockAfter(prevBlock, blockInstance);
+        } else {
+            // Fallback to end
+            this.blocks.push(blockInstance);
+            this.editor.renderer.appendBlock(blockInstance);
+        }
+    } else {
+        this.blocks.push(blockInstance);
+        this.editor.renderer.appendBlock(blockInstance);
+    }
 
     if (focus) {
         blockInstance.focus();

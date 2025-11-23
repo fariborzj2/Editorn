@@ -25,6 +25,16 @@ export class Renderer {
       }
   }
 
+  insertBlockAfter(prevBlock: IBlock, newBlock: IBlock) {
+      const prevElement = this.container.querySelector(`[data-id="${prevBlock.id}"]`);
+      const newElement = newBlock.render();
+      if (prevElement && prevElement.nextSibling) {
+          this.container.insertBefore(newElement, prevElement.nextSibling);
+      } else {
+          this.container.appendChild(newElement);
+      }
+  }
+
   clear() {
       this.container.innerHTML = '';
   }

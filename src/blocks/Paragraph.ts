@@ -23,7 +23,7 @@ export class Paragraph implements IBlock {
     content.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            this.editor.blockManager.addBlock('paragraph');
+            this.editor.blockManager.addBlock('paragraph', {}, true, this.id);
         }
     });
 
