@@ -1,0 +1,26 @@
+{
+  "name": "editron",
+  "version": "0.1.0",
+  "description": "A Next-Generation Modular, AI-Native Rich Text Editor",
+  "main": "dist/editron.js",
+  "module": "dist/editron.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "editor",
+    "wysiwyg",
+    "block-editor",
+    "rich-text"
+  ],
+  "author": "Editron Team",
+  "license": "MIT",
+  "devDependencies": {
+    "sass": "^1.94.2",
+    "typescript": "^5.9.3",
+    "vite": "^4.5.14"
+  }
+}

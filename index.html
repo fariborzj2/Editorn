@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editron Demo</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+      }
+      #editorjs {
+        background: white;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        padding: 2rem;
+        min-height: 400px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      }
+      .ce-block {
+        margin-bottom: 1em;
+      }
+      .ce-paragraph {
+        outline: none;
+        line-height: 1.6;
+      }
+      .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 8px 16px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      #output {
+        margin-top: 20px;
+        white-space: pre-wrap;
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 6px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Editron Demo</h1>
+    <div id="editorjs"></div>
+
+    <div class="controls">
+        <button id="save-btn">Save to JSON</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script type="module" src="/src/index.ts"></script>
+  </body>
+</html>
