@@ -8,6 +8,7 @@ import { ImageBlock } from '../blocks/Image';
 import { Divider } from '../blocks/Divider';
 import { Code } from '../blocks/Code';
 import { Table } from '../blocks/Table';
+import { VideoBlock } from '../blocks/Video';
 
 export class BlockManager {
   private editor: Editron;
@@ -26,6 +27,7 @@ export class BlockManager {
     this.register('divider', Divider);
     this.register('code', Code);
     this.register('table', Table);
+    this.register('video', VideoBlock);
   }
 
   register(type: string, blockClass: any) {

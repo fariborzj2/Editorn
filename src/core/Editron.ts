@@ -2,6 +2,7 @@ import { EventEmitter } from './EventEmitter';
 import { PluginManager } from './PluginManager';
 import { BlockManager } from './BlockManager'; // Will create in next step
 import { Renderer } from './Renderer'; // Will create in next step
+import { PasteManager } from './PasteManager';
 import { EditronConfig, BlockData } from '../types';
 
 export class Editron extends EventEmitter {
@@ -51,6 +52,7 @@ export class Editron extends EventEmitter {
     this.pluginManager = new PluginManager(this);
     this.blockManager = new BlockManager(this);
     this.renderer = new Renderer(this);
+    new PasteManager(this);
   }
 
   public init(): void {

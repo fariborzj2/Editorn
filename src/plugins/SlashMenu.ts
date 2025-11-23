@@ -25,6 +25,7 @@ export class SlashMenu implements IPlugin {
         <div class="menu-item" data-type="divider">Divider</div>
         <div class="menu-item" data-type="code">Code Block</div>
         <div class="menu-item" data-type="table">Table</div>
+        <div class="menu-item" data-type="video">Video Embed</div>
         <div class="menu-item" data-type="ai-generate">✨ Generate Text</div>
     `;
 
