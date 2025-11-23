@@ -29,6 +29,15 @@ document.getElementById('save-btn')?.addEventListener('click', () => {
     });
 });
 
+document.getElementById('export-html-btn')?.addEventListener('click', () => {
+    editor.save().then(data => {
+        const output = document.getElementById('output');
+        if (output) {
+            output.innerText = Exporter.toHTML(data);
+        }
+    });
+});
+
 document.getElementById('export-md-btn')?.addEventListener('click', () => {
     editor.save().then(data => {
         const output = document.getElementById('output');

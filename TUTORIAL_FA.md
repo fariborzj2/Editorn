@@ -1,11 +1,11 @@
-# مستندات توسعه Editron (فاز ۱ تا ۴)
+# مستندات توسعه Editron (فاز ۱ تا ۵)
 
 این مستندات مراحل توسعه ویرایشگر متن **Editron** را شرح می‌دهد.
 
 ---
 
 ## ۱. مقدمه (Introduction)
-Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۴ فاز توسعه تکمیل شده است.
+Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۵ فاز توسعه تکمیل شده است.
 
 ---
 
@@ -16,8 +16,10 @@ src/
 │   ├── Paragraph.ts # پاراگراف
 │   ├── Header.ts    # تیتر
 │   ├── List.ts      # لیست
-│   ├── Quote.ts     # نقل قول (جدید)
-│   └── Image.ts     # تصویر (جدید)
+│   ├── Quote.ts     # نقل قول
+│   ├── Image.ts     # تصویر
+│   ├── Divider.ts   # جداکننده (جدید)
+│   └── Code.ts      # کد بلاک (جدید)
 ├── core/            # هسته اصلی
 │   ├── BlockManager.ts
 │   ├── Editron.ts
@@ -27,53 +29,60 @@ src/
 │   ├── SlashMenu.ts
 │   └── InlineToolbar.ts
 ├── utils/           # ابزارها
-│   └── Exporter.ts  # مبدل خروجی (Markdown)
+│   └── Exporter.ts  # مبدل خروجی (Markdown / HTML)
 └── index.ts
 ```
 
 ---
 
-## ۳. قابلیت‌های فاز ۴ (جدید)
+## ۳. قابلیت‌های فاز ۵ (جدید)
 
-### ۳.۱. بلاک نقل قول (Quote Block)
-یک بلاک ساده برای نمایش نقل قول‌ها با استایل خاص.
-- تبدیل از طریق منوی اسلش (`/quote`).
-- استایل: `border-left` و متن ایتالیک.
+### ۳.۱. جداکننده (Divider Block)
+یک خط افقی (`<hr>`) برای جداسازی محتوا.
+- تبدیل از طریق منوی اسلش (`/divider`).
 
-### ۳.۲. بلاک تصویر (Image Block)
-پشتیبانی از تصاویر با URL.
-- **حالت اولیه:** نمایش اینپوت برای وارد کردن آدرس عکس.
-- **حالت نمایش:** نمایش عکس به همراه کپشن قابل ویرایش.
-- تبدیل از طریق منوی اسلش (`/image`).
+### ۳.۲. بلاک کد (Code Block)
+برای نمایش کدهای برنامه‌نویسی.
+- تبدیل از طریق منوی اسلش (`/code`).
+- پشتیبانی از دکمه `Tab` برای ایندنت (۲ فاصله).
+- خروجی Markdown به صورت ` ``` ` و HTML به صورت `<pre><code>`.
 
-### ۳.۳. خروجی مارک‌داون (Markdown Exporter)
-یک ابزار کاربردی (`utils/Exporter.ts`) که خروجی JSON ویرایشگر را به فرمت استاندارد Markdown تبدیل می‌کند.
-پشتیبانی از:
-- پاراگراف
-- تیترها (`#`, `##`, ...)
-- لیست‌ها (`-`, `1.`)
-- نقل قول (`>`)
-- تصاویر (`![caption](url)`)
+### ۳.۳. خروجی HTML (HTML Exporter)
+اکنون علاوه بر JSON و Markdown، امکان دریافت خروجی HTML تمیز نیز وجود دارد.
+
+```typescript
+// Example Output
+<p>Hello World</p>
+<hr />
+<pre><code>console.log('Test');</code></pre>
+```
 
 ---
 
-## ۴. قابلیت‌های قبلی (فاز ۱-۳)
-- **Inline Toolbar:** منوی فرمت‌دهی سریع (Bold, Italic).
-- **Slash Menu:** منوی تغییر نوع بلاک.
-- **Core Engine:** مدیریت بلاک‌ها و رندرینگ.
+## ۴. قابلیت‌های قبلی (فاز ۱-۴)
+- **Media Blocks:** Quote, Image.
+- **Lists:** Ordered, Unordered.
+- **Tools:** Slash Menu, Inline Toolbar.
+- **Exporters:** JSON, Markdown.
 
 ---
 
 ## ۵. راهنما برای توسعه‌دهندگان
-### افزودن خروجی جدید (Exporter)
-برای اضافه کردن فرمت خروجی جدید (مثلاً HTML)، کافیست یک متد استاتیک در کلاس `Exporter` اضافه کنید که آرایه `BlockData` را پیمایش کرده و رشته نهایی را تولید کند.
+### استفاده از Exporter
+```typescript
+import { Exporter } from './utils/Exporter';
+
+const json = await editor.save();
+const html = Exporter.toHTML(json);
+const markdown = Exporter.toMarkdown(json);
+```
 
 ---
 
 ## ۶. وضعیت فعلی
 - ✅ Core Engine
-- ✅ Blocks: Paragraph, Header, List, Quote, Image
-- ✅ Plugins: Slash Menu, Inline Toolbar
-- ✅ Exporters: JSON, Markdown
-- ⏳ Collaboration Layer (Next)
-- ⏳ AI Integration (Next)
+- ✅ All Basic Blocks (Paragraph, Header, List, Quote, Image, Divider, Code)
+- ✅ Plugins (Slash Menu, Inline Toolbar)
+- ✅ Exporters (JSON, Markdown, HTML)
+- ⏳ Collaboration Layer (Future)
+- ⏳ AI Integration (Future)

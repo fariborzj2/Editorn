@@ -5,6 +5,8 @@ import { Header } from '../blocks/Header';
 import { List } from '../blocks/List';
 import { Quote } from '../blocks/Quote';
 import { ImageBlock } from '../blocks/Image';
+import { Divider } from '../blocks/Divider';
+import { Code } from '../blocks/Code';
 
 export class BlockManager {
   private editor: Editron;
@@ -20,6 +22,8 @@ export class BlockManager {
     this.register('list', List);
     this.register('quote', Quote);
     this.register('image', ImageBlock);
+    this.register('divider', Divider);
+    this.register('code', Code);
   }
 
   register(type: string, blockClass: any) {
