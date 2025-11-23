@@ -1,58 +1,75 @@
-# مستندات توسعه Editron (فاز ۱ تا ۹)
+# مستندات توسعه Editron (فاز ۱ تا ۱۰)
 
 این مستندات مراحل توسعه ویرایشگر متن **Editron** را شرح می‌دهد.
 
 ---
 
 ## ۱. مقدمه (Introduction)
-Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۹ فاز توسعه تکمیل شده است.
+Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۱۰ فاز توسعه تکمیل شده است.
 
 ---
 
 ## ۲. ساختار پروژه (Project Structure)
 ```bash
 src/
+├── adapters/        # آداپتورهای فریم‌ورک (جدید)
+│   ├── react/
+│   │   └── EditronReact.tsx
+│   └── vue/
+│       └── EditronVue.ts
 ├── blocks/          # بلاک‌ها
 ├── core/            # هسته اصلی
 ├── plugins/         # پلاگین‌ها
-│   ├── SlashMenu.ts
-│   ├── InlineToolbar.ts
-│   ├── Autosave.ts
-│   ├── Collaboration.ts
-│   └── AIAssistant.ts # دستیار هوشمند (جدید)
 ├── utils/           # ابزارها
 └── index.ts
 ```
 
 ---
 
-## ۳. قابلیت‌های فاز ۹ (جدید)
+## ۳. قابلیت‌های فاز ۱۰ (جدید)
 
-### ۳.۱. دستیار هوشمند (AI Assistant Plugin)
-یک پلاگین قدرتمند برای انجام عملیات هوشمند روی متن.
-- **دسترسی:**
-  1. **Inline Toolbar:** با انتخاب متن و کلیک روی دکمه `✨ AI`.
-  2. **Slash Menu:** با تایپ `/` و انتخاب گزینه `Generate Text`.
-- **قابلیت‌ها:**
-  - **Summarize:** خلاصه‌سازی متن انتخاب شده.
-  - **Expand:** گسترش متن و افزودن جزئیات.
-  - **Fix Grammar:** اصلاح گرامری (Mock).
-  - **Make Funny:** بازنویسی متن به صورت طنز.
-- **پیاده‌سازی:** فعلاً از یک سرویس Mock استفاده می‌کند که با `setTimeout` تاخیر شبکه را شبیه‌سازی کرده و تغییرات ساده‌ای روی رشته ورودی اعمال می‌کند.
+### ۳.۱. آداپتور React
+یک کامپوننت Wrapper که استفاده از Editron را در پروژه‌های React ساده می‌کند.
+- **Props:** `data`, `placeholder`, `theme`, `onChange`, `onReady`.
+- **Methods:** `save()`, `getInstance()`.
+
+```tsx
+import { EditronReact } from './adapters/react/EditronReact';
+
+function App() {
+  return (
+    <EditronReact
+      onChange={(data) => console.log(data)}
+      placeholder="Start typing..."
+    />
+  );
+}
+```
+
+### ۳.۲. آداپتور Vue 3
+یک کامپوننت Wrapper برای پروژه‌های Vue.
+- **Props:** `data`, `placeholder`, `theme`.
+- **Events:** `@change`, `@ready`.
+
+```html
+<template>
+  <EditronVue @change="handleChange" />
+</template>
+```
 
 ---
 
-## ۴. قابلیت‌های قبلی (فاز ۱-۸)
-- **Core:** Event System, Collaboration (BroadcastChannel), Drag & Drop.
-- **Blocks:** Paragraph, Header, List, Quote, Image, Divider, Code, Table.
-- **Tools:** Slash Menu, Inline Toolbar, Autosave, Theming.
-- **Exporters:** Markdown, HTML.
+## ۴. قابلیت‌های قبلی (فاز ۱-۹)
+- **AI Integration:** Mock AI Assistant.
+- **Collaboration:** Real-time sync via BroadcastChannel.
+- **Core & UI:** Drag & Drop, Theming, Autosave, Event System.
+- **Blocks:** Full standard set + Table.
 
 ---
 
 ## ۶. وضعیت فعلی
-- ✅ Core Engine (Enhanced)
-- ✅ Collaboration
-- ✅ AI Integration (Mock)
-- ✅ All Standard Blocks
-- ⏳ Framework Adapters (Future)
+- ✅ Core Engine
+- ✅ All Plugins & Blocks
+- ✅ Framework Adapters (React, Vue)
+- ✅ Documentation & Tutorials
+- 🏁 **Project Complete** (Basic V1)
