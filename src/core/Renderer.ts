@@ -17,6 +17,14 @@ export class Renderer {
     this.container.appendChild(element);
   }
 
+  replaceBlock(oldBlock: IBlock, newBlock: IBlock) {
+      const oldElement = this.container.querySelector(`[data-id="${oldBlock.id}"]`);
+      if (oldElement) {
+          const newElement = newBlock.render();
+          this.container.replaceChild(newElement, oldElement);
+      }
+  }
+
   clear() {
       this.container.innerHTML = '';
   }

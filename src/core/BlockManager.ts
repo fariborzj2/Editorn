@@ -1,6 +1,7 @@
 import { Editron } from './Editron';
 import { IBlock, BlockData } from '../types';
 import { Paragraph } from '../blocks/Paragraph';
+import { Header } from '../blocks/Header';
 
 export class BlockManager {
   private editor: Editron;
@@ -12,6 +13,7 @@ export class BlockManager {
 
     // Register default blocks
     this.register('paragraph', Paragraph);
+    this.register('header', Header);
   }
 
   register(type: string, blockClass: any) {
@@ -36,6 +38,42 @@ export class BlockManager {
     }
 
     return blockInstance;
+  }
+
+  replaceBlock(blockId: string, type: string, data: any = {}): IBlock | null {
+      const index = this.blocks.findIndex(b => b.id === blockId);
+      if (index === -1) {
+          console.error(`Block with id ${blockId} not found`);
+          return null;
+      }
+
+      const BlockClass = this.registry.get(type);
+      if (!BlockClass) {
+        console.error(`Block type ${type} not registered`);
+        return null;
+      }
+
+      // Preserve ID for continuity if needed, OR generate new one.
+      // Usually, changing type keeps the position but technically is a new block.
+      // Let's keep the ID for now if we want to simulate "morphing",
+      // but usually replacing means new ID or same ID.
+      // Let's use the SAME ID to keep it stable in lists if external references existed.
+      const oldBlock = this.blocks[index];
+      const newBlockInstance: IBlock = new BlockClass(blockId, data, this.editor);
+
+      this.blocks[index] = newBlockInstance;
+      this.editor.renderer.replaceBlock(oldBlock, newBlockInstance);
+      newBlockInstance.focus();
+
+      return newBlockInstance;
+  }
+
+  getBlockIndex(id: string): number {
+      return this.blocks.findIndex(b => b.id === id);
+  }
+
+  getBlockByIndex(index: number): IBlock | undefined {
+      return this.blocks[index];
   }
 
   renderBlocks(data: BlockData[]) {
