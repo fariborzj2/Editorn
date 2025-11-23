@@ -1,75 +1,56 @@
-# مستندات توسعه Editron (فاز ۱ تا ۱۰)
+# مستندات توسعه Editron (فاز ۱ تا ۱۱)
 
 این مستندات مراحل توسعه ویرایشگر متن **Editron** را شرح می‌دهد.
 
 ---
 
 ## ۱. مقدمه (Introduction)
-Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۱۰ فاز توسعه تکمیل شده است.
+Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۱۱ فاز توسعه تکمیل شده است.
 
 ---
 
 ## ۲. ساختار پروژه (Project Structure)
 ```bash
 src/
-├── adapters/        # آداپتورهای فریم‌ورک (جدید)
-│   ├── react/
-│   │   └── EditronReact.tsx
-│   └── vue/
-│       └── EditronVue.ts
-├── blocks/          # بلاک‌ها
-├── core/            # هسته اصلی
-├── plugins/         # پلاگین‌ها
-├── utils/           # ابزارها
-└── index.ts
+├── adapters/        # React/Vue Adapters
+├── blocks/          # Block Components
+├── core/            # Engine Core
+├── plugins/         # Feature Plugins
+├── utils/           # Helpers
+├── index.ts         # Library Entry
+tests/               # Unit Tests
+vite.config.ts       # Build Configuration
 ```
 
 ---
 
-## ۳. قابلیت‌های فاز ۱۰ (جدید)
+## ۳. قابلیت‌های فاز ۱۱ (جدید)
 
-### ۳.۱. آداپتور React
-یک کامپوننت Wrapper که استفاده از Editron را در پروژه‌های React ساده می‌کند.
-- **Props:** `data`, `placeholder`, `theme`, `onChange`, `onReady`.
-- **Methods:** `save()`, `getInstance()`.
+### ۳.۱. سیستم بیلد (Production Build)
+تنظیمات `vite.config.ts` برای خروجی گرفتن به صورت یک کتابخانه (Library Mode) انجام شد.
+- **Formats:** ES Module (`.mjs`), UMD (`.js`).
+- **Externalization:** وابستگی‌های `react` و `vue` از باندل نهایی حذف شدند تا حجم کاهش یابد.
 
-```tsx
-import { EditronReact } from './adapters/react/EditronReact';
-
-function App() {
-  return (
-    <EditronReact
-      onChange={(data) => console.log(data)}
-      placeholder="Start typing..."
-    />
-  );
-}
-```
-
-### ۳.۲. آداپتور Vue 3
-یک کامپوننت Wrapper برای پروژه‌های Vue.
-- **Props:** `data`, `placeholder`, `theme`.
-- **Events:** `@change`, `@ready`.
-
-```html
-<template>
-  <EditronVue @change="handleChange" />
-</template>
-```
+### ۳.۲. تست واحد (Unit Testing)
+فریم‌ورک `Vitest` برای تست‌های واحد اضافه شد.
+- **تست Core:** عملکرد `BlockManager` (افزودن، حذف، جابجایی) تست می‌شود.
+- **اجرا:** با دستور `npm run test`.
 
 ---
 
-## ۴. قابلیت‌های قبلی (فاز ۱-۹)
-- **AI Integration:** Mock AI Assistant.
-- **Collaboration:** Real-time sync via BroadcastChannel.
-- **Core & UI:** Drag & Drop, Theming, Autosave, Event System.
-- **Blocks:** Full standard set + Table.
+## ۴. راهنما برای توسعه‌دهندگان
+### انتشار نسخه جدید
+1. **تست:** ابتدا `npm run test` را اجرا کنید تا از صحت عملکرد مطمئن شوید.
+2. **بیلد:** دستور `npm run build` را اجرا کنید. فایل‌های خروجی در پوشه `dist/` قرار می‌گیرند.
+3. **استفاده:** فایل‌های `dist` را می‌توان در پروژه‌های دیگر ایمپورت کرد یا در `npm` منتشر نمود.
 
 ---
 
 ## ۶. وضعیت فعلی
 - ✅ Core Engine
 - ✅ All Plugins & Blocks
-- ✅ Framework Adapters (React, Vue)
-- ✅ Documentation & Tutorials
-- 🏁 **Project Complete** (Basic V1)
+- ✅ Framework Adapters
+- ✅ Documentation
+- ✅ **Production Ready Build System**
+- ✅ **Unit Tests**
+- 🏁 **Completed**
