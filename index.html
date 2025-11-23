@@ -136,6 +136,59 @@
         border: 1px solid #ddd;
         border-radius: 4px;
       }
+      .ce-divider {
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 1.5rem 0;
+      }
+      .ce-block--focused .ce-divider {
+        border-color: #2563eb;
+      }
+      .ce-code-wrapper {
+        background: #f1f5f9;
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 1em 0;
+        overflow-x: auto;
+      }
+      .ce-code {
+        font-family: 'Fira Code', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        outline: none;
+        display: block;
+        min-height: 20px;
+        white-space: pre-wrap;
+      }
+      .ce-code[data-placeholder]:empty:before {
+        content: attr(data-placeholder);
+        color: #94a3b8;
+      }
+      .ce-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1em 0;
+      }
+      .ce-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        min-width: 50px;
+      }
+      .ce-table-controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 1rem;
+      }
+      .ce-table-controls button {
+        padding: 4px 8px;
+        font-size: 12px;
+        background: #f1f5f9;
+        color: #333;
+        border: 1px solid #ddd;
+      }
+      .ce-table-controls button:hover {
+        background: #e2e8f0;
+      }
     </style>
   </head>
   <body>
@@ -145,6 +198,8 @@
     <div class="controls">
         <button id="save-btn">Save to JSON</button>
         <button id="export-md-btn">Export to Markdown</button>
+        <button id="export-html-btn">Export to HTML</button>
+        <button id="clear-storage-btn" style="background-color: #ef4444;">Clear Autosave</button>
     </div>
 
     <div id="output"></div>

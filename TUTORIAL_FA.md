@@ -1,11 +1,11 @@
-# مستندات توسعه Editron (فاز ۱ تا ۴)
+# مستندات توسعه Editron (فاز ۱ تا ۶)
 
 این مستندات مراحل توسعه ویرایشگر متن **Editron** را شرح می‌دهد.
 
 ---
 
 ## ۱. مقدمه (Introduction)
-Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۴ فاز توسعه تکمیل شده است.
+Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۶ فاز توسعه تکمیل شده است.
 
 ---
 
@@ -13,11 +13,14 @@ Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا 
 ```bash
 src/
 ├── blocks/          # بلاک‌ها
-│   ├── Paragraph.ts # پاراگراف
-│   ├── Header.ts    # تیتر
-│   ├── List.ts      # لیست
-│   ├── Quote.ts     # نقل قول (جدید)
-│   └── Image.ts     # تصویر (جدید)
+│   ├── Paragraph.ts
+│   ├── Header.ts
+│   ├── List.ts
+│   ├── Quote.ts
+│   ├── Image.ts
+│   ├── Divider.ts
+│   ├── Code.ts
+│   └── Table.ts     # جدول (جدید)
 ├── core/            # هسته اصلی
 │   ├── BlockManager.ts
 │   ├── Editron.ts
@@ -25,55 +28,61 @@ src/
 │   └── Renderer.ts
 ├── plugins/         # پلاگین‌ها
 │   ├── SlashMenu.ts
-│   └── InlineToolbar.ts
+│   ├── InlineToolbar.ts
+│   └── Autosave.ts  # ذخیره خودکار (جدید)
 ├── utils/           # ابزارها
-│   └── Exporter.ts  # مبدل خروجی (Markdown)
+│   └── Exporter.ts
 └── index.ts
 ```
 
 ---
 
-## ۳. قابلیت‌های فاز ۴ (جدید)
+## ۳. قابلیت‌های فاز ۶ (جدید)
 
-### ۳.۱. بلاک نقل قول (Quote Block)
-یک بلاک ساده برای نمایش نقل قول‌ها با استایل خاص.
-- تبدیل از طریق منوی اسلش (`/quote`).
-- استایل: `border-left` و متن ایتالیک.
+### ۳.۱. سیستم ذخیره خودکار (Autosave Plugin)
+پلاگینی که تغییرات ادیتور را به صورت خودکار در `localStorage` ذخیره می‌کند.
+- **تشخیص تغییرات:** سیستم رویدادهای `Editron` بهبود یافت تا هرگونه تغییر (تایپ کردن، افزودن بلاک و...) را با رویداد `change` مخابره کند.
+- **بازیابی:** در هنگام بارگذاری، اگر دیتایی ذخیره شده باشد، به صورت خودکار بازیابی می‌شود.
+- **دکمه پاکسازی:** دکمه‌ای برای حذف دیتای ذخیره شده اضافه شد.
 
-### ۳.۲. بلاک تصویر (Image Block)
-پشتیبانی از تصاویر با URL.
-- **حالت اولیه:** نمایش اینپوت برای وارد کردن آدرس عکس.
-- **حالت نمایش:** نمایش عکس به همراه کپشن قابل ویرایش.
-- تبدیل از طریق منوی اسلش (`/image`).
+### ۳.۲. بلاک جدول (Table Block)
+پشتیبانی از جداول ساده با قابلیت ویرایش سلول‌ها.
+- **ایجاد:** از طریق منوی اسلش (`/table`).
+- **کنترل‌ها:** دکمه‌های `+ Row` و `+ Col` در زیر جدول برای افزودن سطر و ستون.
+- **خروجی:** پشتیبانی کامل در Markdown و HTML.
 
-### ۳.۳. خروجی مارک‌داون (Markdown Exporter)
-یک ابزار کاربردی (`utils/Exporter.ts`) که خروجی JSON ویرایشگر را به فرمت استاندارد Markdown تبدیل می‌کند.
-پشتیبانی از:
-- پاراگراف
-- تیترها (`#`, `##`, ...)
-- لیست‌ها (`-`, `1.`)
-- نقل قول (`>`)
-- تصاویر (`![caption](url)`)
+```html
+<!-- Table Output HTML -->
+<table>
+  <tr><td>Cell 1</td><td>Cell 2</td></tr>
+</table>
+```
 
 ---
 
-## ۴. قابلیت‌های قبلی (فاز ۱-۳)
-- **Inline Toolbar:** منوی فرمت‌دهی سریع (Bold, Italic).
-- **Slash Menu:** منوی تغییر نوع بلاک.
-- **Core Engine:** مدیریت بلاک‌ها و رندرینگ.
+## ۴. قابلیت‌های قبلی (فاز ۱-۵)
+- **Blocks:** Paragraph, Header, List, Quote, Image, Divider, Code.
+- **Tools:** Slash Menu, Inline Toolbar.
+- **Core:** Event System, Plugin System, Block Manager.
+- **Exporters:** JSON, Markdown, HTML.
 
 ---
 
 ## ۵. راهنما برای توسعه‌دهندگان
-### افزودن خروجی جدید (Exporter)
-برای اضافه کردن فرمت خروجی جدید (مثلاً HTML)، کافیست یک متد استاتیک در کلاس `Exporter` اضافه کنید که آرایه `BlockData` را پیمایش کرده و رشته نهایی را تولید کند.
+### استفاده از Event System
+برای گوش دادن به تغییرات محتوا:
+```typescript
+editor.on('change', () => {
+  console.log('Content changed!');
+});
+```
 
 ---
 
 ## ۶. وضعیت فعلی
-- ✅ Core Engine
-- ✅ Blocks: Paragraph, Header, List, Quote, Image
-- ✅ Plugins: Slash Menu, Inline Toolbar
-- ✅ Exporters: JSON, Markdown
-- ⏳ Collaboration Layer (Next)
-- ⏳ AI Integration (Next)
+- ✅ Core Engine & Event System
+- ✅ All Standard Blocks (including Table)
+- ✅ Plugins (Slash Menu, Inline Toolbar, Autosave)
+- ✅ Exporters
+- ⏳ Collaboration Layer (Future)
+- ⏳ AI Integration (Future)
