@@ -25,6 +25,11 @@ export class Editron extends EventEmitter {
 
     this.holder.classList.add('editron-editor');
 
+    // Capture input events to detect content changes
+    this.holder.addEventListener('input', () => {
+        this.emit('change');
+    });
+
     // Initialize sub-systems
     this.pluginManager = new PluginManager(this);
     this.blockManager = new BlockManager(this);
@@ -33,6 +38,13 @@ export class Editron extends EventEmitter {
 
   public init(): void {
     this.emit('init');
+
+    // If blocks are already present (e.g. from Autosave plugin), don't overwrite with initial data
+    const currentBlocks = this.blockManager.save();
+    if (currentBlocks.length > 0) {
+        this.emit('ready');
+        return;
+    }
 
     // Render initial data or default block
     if (this.config.data && this.config.data.length > 0) {

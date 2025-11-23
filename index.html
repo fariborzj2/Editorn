@@ -164,6 +164,31 @@
         content: attr(data-placeholder);
         color: #94a3b8;
       }
+      .ce-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1em 0;
+      }
+      .ce-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        min-width: 50px;
+      }
+      .ce-table-controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 1rem;
+      }
+      .ce-table-controls button {
+        padding: 4px 8px;
+        font-size: 12px;
+        background: #f1f5f9;
+        color: #333;
+        border: 1px solid #ddd;
+      }
+      .ce-table-controls button:hover {
+        background: #e2e8f0;
+      }
     </style>
   </head>
   <body>
@@ -174,6 +199,7 @@
         <button id="save-btn">Save to JSON</button>
         <button id="export-md-btn">Export to Markdown</button>
         <button id="export-html-btn">Export to HTML</button>
+        <button id="clear-storage-btn" style="background-color: #ef4444;">Clear Autosave</button>
     </div>
 
     <div id="output"></div>

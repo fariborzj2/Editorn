@@ -24,6 +24,17 @@ export class Exporter {
                     return '---\n\n';
                 case 'code':
                     return '```\n' + block.content.code + '\n```\n\n';
+                case 'table':
+                    const rows = block.content.content;
+                    if (!rows || rows.length === 0) return '';
+                    // Simple Markdown Table
+                    // | Col 1 | Col 2 |
+                    // | --- | --- |
+                    // | Val 1 | Val 2 |
+                    const header = '| ' + rows[0].map(() => '   ').join(' | ') + ' |\n';
+                    const divider = '| ' + rows[0].map(() => '---').join(' | ') + ' |\n';
+                    const body = rows.map((row: string[]) => '| ' + row.join(' | ') + ' |').join('\n');
+                    return header + divider + body + '\n\n';
                 default:
                     return '';
             }
@@ -49,6 +60,12 @@ export class Exporter {
                     return '<hr />';
                 case 'code':
                     return `<pre><code>${block.content.code}</code></pre>`;
+                case 'table':
+                    const tableRows = block.content.content.map((row: string[]) => {
+                        const cells = row.map(cell => `<td>${cell}</td>`).join('');
+                        return `<tr>${cells}</tr>`;
+                    }).join('');
+                    return `<table>${tableRows}</table>`;
                 default:
                     return '';
             }

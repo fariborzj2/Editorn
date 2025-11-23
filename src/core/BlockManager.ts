@@ -7,6 +7,7 @@ import { Quote } from '../blocks/Quote';
 import { ImageBlock } from '../blocks/Image';
 import { Divider } from '../blocks/Divider';
 import { Code } from '../blocks/Code';
+import { Table } from '../blocks/Table';
 
 export class BlockManager {
   private editor: Editron;
@@ -24,6 +25,7 @@ export class BlockManager {
     this.register('image', ImageBlock);
     this.register('divider', Divider);
     this.register('code', Code);
+    this.register('table', Table);
   }
 
   register(type: string, blockClass: any) {
@@ -60,6 +62,7 @@ export class BlockManager {
         blockInstance.focus();
     }
 
+    this.editor.emit('change');
     return blockInstance;
   }
 
@@ -88,6 +91,7 @@ export class BlockManager {
       this.editor.renderer.replaceBlock(oldBlock, newBlockInstance);
       newBlockInstance.focus();
 
+      this.editor.emit('change');
       return newBlockInstance;
   }
 
@@ -100,11 +104,14 @@ export class BlockManager {
   }
 
   renderBlocks(data: BlockData[]) {
+    console.log('BlockManager: rendering blocks', data.length);
     this.editor.renderer.clear();
     this.blocks = [];
     data.forEach(blockData => {
-        this.addBlock(blockData.type, blockData.content, false);
+        const added = this.addBlock(blockData.type, blockData.content, false);
+        if (!added) console.error('Failed to add block', blockData.type);
     });
+    console.log('BlockManager: blocks after render', this.blocks.length);
   }
 
   save(): BlockData[] {
