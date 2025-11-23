@@ -246,6 +246,29 @@
       .ce-drag-over {
         border-top: 2px solid #2563eb;
       }
+      .ce-block-wrapper {
+        position: relative;
+      }
+      .ce-delete-btn {
+        position: absolute;
+        right: -30px;
+        top: 0;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        color: #ef4444;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        opacity: 0.5;
+      }
+      .ce-block-wrapper:hover .ce-delete-btn {
+        display: flex;
+      }
+      .ce-delete-btn:hover {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>

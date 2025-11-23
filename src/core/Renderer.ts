@@ -22,6 +22,8 @@ export class Renderer {
       if (oldWrapper) {
           const newWrapper = this.createBlockWrapper(newBlock);
           this.container.replaceChild(newWrapper, oldWrapper);
+      } else {
+          console.error('Renderer: Could not find block to replace', oldBlock.id);
       }
   }
 
@@ -49,8 +51,19 @@ export class Renderer {
       const content = block.render();
       content.classList.add('ce-block-content');
 
+      const deleteBtn = document.createElement('div');
+      deleteBtn.classList.add('ce-delete-btn');
+      deleteBtn.innerHTML = '×';
+      deleteBtn.title = 'Delete block';
+      deleteBtn.addEventListener('click', () => {
+          if (confirm('Delete this block?')) {
+              this.editor.blockManager.removeBlock(block.id);
+          }
+      });
+
       wrapper.appendChild(handle);
       wrapper.appendChild(content);
+      wrapper.appendChild(deleteBtn);
 
       this.attachDragEvents(wrapper);
 

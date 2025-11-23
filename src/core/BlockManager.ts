@@ -32,15 +32,15 @@ export class BlockManager {
     this.registry.set(type, blockClass);
   }
 
-  addBlock(type: string, data: any = {}, focus: boolean = true, afterBlockId?: string): IBlock | null {
+  addBlock(type: string, data: any = {}, focus: boolean = true, afterBlockId?: string, id?: string): IBlock | null {
     const BlockClass = this.registry.get(type);
     if (!BlockClass) {
       console.error(`Block type ${type} not registered`);
       return null;
     }
 
-    const id = crypto.randomUUID();
-    const blockInstance: IBlock = new BlockClass(id, data, this.editor);
+    const blockId = id || crypto.randomUUID();
+    const blockInstance: IBlock = new BlockClass(blockId, data, this.editor);
 
     if (afterBlockId) {
         const index = this.blocks.findIndex(b => b.id === afterBlockId);
@@ -63,6 +63,7 @@ export class BlockManager {
     }
 
     this.editor.emit('change');
+    this.editor.emit('block:add', blockInstance.save());
     return blockInstance;
   }
 
@@ -92,7 +93,12 @@ export class BlockManager {
       newBlockInstance.focus();
 
       this.editor.emit('change');
+      this.editor.emit('block:change', { id: blockId, content: newBlockInstance.save().content });
       return newBlockInstance;
+  }
+
+  getBlockById(id: string): IBlock | undefined {
+      return this.blocks.find(b => b.id === id);
   }
 
   getBlockIndex(id: string): number {
@@ -108,7 +114,8 @@ export class BlockManager {
     this.editor.renderer.clear();
     this.blocks = [];
     data.forEach(blockData => {
-        const added = this.addBlock(blockData.type, blockData.content, false);
+        // Pass existing ID if available
+        const added = this.addBlock(blockData.type, blockData.content, false, undefined, blockData.id);
         if (!added) console.error('Failed to add block', blockData.type);
     });
     console.log('BlockManager: blocks after render', this.blocks.length);
@@ -141,6 +148,22 @@ export class BlockManager {
 
           this.renderBlocks(this.save());
           this.editor.emit('change');
+          this.editor.emit('block:move', { id: draggedId, index: newTargetIndex });
+      }
+  }
+
+  removeBlock(id: string) {
+      const index = this.blocks.findIndex(b => b.id === id);
+      if (index !== -1) {
+          // const block = this.blocks[index];
+          this.blocks.splice(index, 1);
+
+          // We need a removeBlock method in Renderer to avoid full re-render
+          // For now, full re-render is safe
+          this.renderBlocks(this.save());
+
+          this.editor.emit('change');
+          this.editor.emit('block:remove', { id });
       }
   }
 
