@@ -1,5 +1,6 @@
 import { IPlugin } from '../types';
 import { Editron } from '../core/Editron';
+import { AIAssistant } from './AIAssistant';
 
 export class SlashMenu implements IPlugin {
   public name: string = 'slash-menu';
@@ -24,13 +25,21 @@ export class SlashMenu implements IPlugin {
         <div class="menu-item" data-type="divider">Divider</div>
         <div class="menu-item" data-type="code">Code Block</div>
         <div class="menu-item" data-type="table">Table</div>
+        <div class="menu-item" data-type="ai-generate">✨ Generate Text</div>
     `;
 
     this.menu.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent closing other menus immediately if listeners conflict
         const target = e.target as HTMLElement;
         if (target.classList.contains('menu-item') && this.activeBlockId && this.editor) {
             const type = target.dataset.type;
             const level = target.dataset.level ? parseInt(target.dataset.level) : undefined;
+
+            if (type === 'ai-generate') {
+                this.triggerAIGenerate(target);
+                this.close();
+                return;
+            }
 
             if (type) {
                 const style = target.dataset.style;
@@ -91,6 +100,42 @@ export class SlashMenu implements IPlugin {
       this.menu.style.display = 'block';
       this.menu.style.top = `${rect.bottom + window.scrollY}px`;
       this.menu.style.left = `${rect.left + window.scrollX}px`;
+  }
+
+  triggerAIGenerate(target: HTMLElement) {
+      if (!this.editor) return;
+      const aiPlugin = this.editor.pluginManager.get('ai-assistant') as AIAssistant;
+      if (aiPlugin && this.activeBlockId) {
+          // Select the slash text so AI knows what context or just show dialog
+          // The dialog currently uses selection.
+          // We should probably remove the "/" character first?
+          // Ideally pass "Expand" action directly.
+          // But current AI implementation relies on selection.
+          // Let's manually set selection to the block content (minus slash?)
+          // Actually slash menu triggers on "/" at start. content is "/".
+
+          // Hack: Insert a placeholder or just open dialog
+          // Let's open dialog near the menu item
+
+          // We need to ensure there is a selection for AI to work or modify AI to accept explicit text.
+          // Current AI mock uses `window.getSelection()`.
+          // Let's select the block.
+          // const block = this.editor.blockManager.getBlockById(this.activeBlockId);
+          // renderBlocks? No, we need the DOM element.
+          // BlockManager doesn't expose DOM element easily by ID.
+          // We can querySelector.
+          const blockEl = this.editor.holder.querySelector(`[data-block-id="${this.activeBlockId}"]`);
+          if (blockEl) {
+              const range = document.createRange();
+              range.selectNodeContents(blockEl); // Selects whole block
+              const sel = window.getSelection();
+              sel?.removeAllRanges();
+              sel?.addRange(range);
+
+              const rect = target.getBoundingClientRect();
+              aiPlugin.show(rect);
+          }
+      }
   }
 
   close() {

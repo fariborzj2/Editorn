@@ -1,5 +1,6 @@
 import { IPlugin } from '../types';
 import { Editron } from '../core/Editron';
+import { AIAssistant } from './AIAssistant';
 
 export class InlineToolbar implements IPlugin {
   public name: string = 'inline-toolbar';
@@ -15,6 +16,7 @@ export class InlineToolbar implements IPlugin {
         <button class="toolbar-btn" data-cmd="bold"><b>B</b></button>
         <button class="toolbar-btn" data-cmd="italic"><i>I</i></button>
         <button class="toolbar-btn" data-cmd="underline"><u>U</u></button>
+        <button class="toolbar-btn ce-ai-trigger" data-cmd="ai">✨ AI</button>
     `;
 
     // Prevent loss of focus when clicking buttons
@@ -26,7 +28,10 @@ export class InlineToolbar implements IPlugin {
         const target = (e.target as HTMLElement).closest('.toolbar-btn') as HTMLElement;
         if (target) {
             const cmd = target.dataset.cmd;
-            if (cmd) {
+            if (cmd === 'ai') {
+                e.stopPropagation(); // Prevent AI dialog from closing immediately
+                this.triggerAI();
+            } else if (cmd) {
                 document.execCommand(cmd, false);
                 this.updatePosition(); // Re-calculate position if needed
             }
@@ -94,6 +99,19 @@ export class InlineToolbar implements IPlugin {
   updatePosition() {
       if (this.isVisible) {
           this.handleSelectionChange();
+      }
+  }
+
+  triggerAI() {
+      if (!this.editor) return;
+      // Find the AI plugin
+      // We need a way to access other plugins. PluginManager has get().
+      // But Editor instance has PluginManager.
+      const aiPlugin = this.editor.pluginManager.get('ai-assistant') as AIAssistant;
+      if (aiPlugin) {
+          const rect = this.toolbar.getBoundingClientRect();
+          aiPlugin.show(rect);
+          this.hide(); // Hide toolbar when AI dialog opens
       }
   }
 
