@@ -3,6 +3,7 @@ import { PluginManager } from './PluginManager';
 import { BlockManager } from './BlockManager'; // Will create in next step
 import { Renderer } from './Renderer'; // Will create in next step
 import { PasteManager } from './PasteManager';
+import { HistoryManager } from './HistoryManager';
 import { EditronConfig, BlockData } from '../types';
 
 export class Editron extends EventEmitter {
@@ -10,6 +11,7 @@ export class Editron extends EventEmitter {
   public pluginManager: PluginManager;
   public blockManager: BlockManager;
   public renderer: Renderer;
+  public historyManager: HistoryManager;
   public holder: HTMLElement;
 
   constructor(config: EditronConfig) {
@@ -52,7 +54,28 @@ export class Editron extends EventEmitter {
     this.pluginManager = new PluginManager(this);
     this.blockManager = new BlockManager(this);
     this.renderer = new Renderer(this);
+    this.historyManager = new HistoryManager(this);
     new PasteManager(this);
+
+    this.setupShortcuts();
+  }
+
+  private setupShortcuts() {
+      document.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+              e.preventDefault();
+              if (e.shiftKey) {
+                  this.historyManager.redo();
+              } else {
+                  this.historyManager.undo();
+              }
+          }
+          // Standard Redo (Ctrl+Y)
+          if ((e.ctrlKey || e.metaKey) && e.key === 'y' && !e.shiftKey) {
+              e.preventDefault();
+              this.historyManager.redo();
+          }
+      });
   }
 
   public init(): void {
@@ -73,6 +96,18 @@ export class Editron extends EventEmitter {
     }
 
     this.emit('ready');
+
+    // Initial history state
+    this.historyManager.pushState();
+
+    // Listen for changes to update history (debounced)
+    let debounceTimer: number;
+    this.on('change', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = window.setTimeout(() => {
+            this.historyManager.pushState();
+        }, 500);
+    });
   }
 
   public save(): Promise<BlockData[]> {

@@ -1,4 +1,5 @@
 import { Editron } from './Editron';
+import { Sanitizer } from '../utils/Sanitizer';
 
 export class PasteManager {
   private editor: Editron;
@@ -20,7 +21,7 @@ export class PasteManager {
     const text = e.clipboardData?.getData('text/plain');
 
     if (html) {
-        this.processHTML(html);
+        this.processHTML(Sanitizer.cleanBlock(html));
     } else if (text) {
         this.processText(text);
     }

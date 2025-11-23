@@ -1,5 +1,6 @@
 import { IBlock, BlockData } from '../types';
 import { Editron } from '../core/Editron';
+import { Sanitizer } from '../utils/Sanitizer';
 
 export class Paragraph implements IBlock {
   public id: string;
@@ -18,7 +19,7 @@ export class Paragraph implements IBlock {
     const content = document.createElement('div');
     content.classList.add('ce-paragraph');
     content.contentEditable = 'true';
-    content.innerHTML = data.text || '';
+    content.innerHTML = Sanitizer.clean(data.text || '');
 
     // Basic event handling
     content.addEventListener('keydown', (e) => {
