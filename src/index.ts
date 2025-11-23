@@ -32,6 +32,29 @@ document.getElementById('save-btn')?.addEventListener('click', () => {
     });
 });
 
+// Theme Handling
+const themeToggle = document.getElementById('theme-toggle');
+const html = document.documentElement;
+
+// Load saved theme
+const savedTheme = localStorage.getItem('editron_theme') || 'light';
+html.setAttribute('data-theme', savedTheme);
+if (themeToggle) {
+    themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+}
+
+themeToggle?.addEventListener('click', () => {
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('editron_theme', newTheme);
+
+    if (themeToggle) {
+        themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    }
+});
+
 document.getElementById('clear-storage-btn')?.addEventListener('click', () => {
     autosave.clear();
     alert('Autosave cleared. Reload to see default content.');

@@ -114,6 +114,36 @@ export class BlockManager {
     console.log('BlockManager: blocks after render', this.blocks.length);
   }
 
+  moveBlock(draggedId: string, targetId: string) {
+      const draggedIndex = this.blocks.findIndex(b => b.id === draggedId);
+      const targetIndex = this.blocks.findIndex(b => b.id === targetId);
+
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+          // If we drag from top to bottom (draggedIndex < targetIndex),
+          // removing the dragged block shifts the target index down by 1.
+          // We want to insert AFTER the target in this case (usually).
+          // But if we use drop-on-target logic, it usually means "put before target"
+          // or "put after target" depending on mouse Y relative to center.
+          // Assuming drop is "place here", let's check direction.
+
+          const [draggedBlock] = this.blocks.splice(draggedIndex, 1);
+          let newTargetIndex = this.blocks.findIndex(b => b.id === targetId);
+
+          if (draggedIndex < targetIndex) {
+              // Moving down. Insert AFTER the target (which shifted up).
+              newTargetIndex = newTargetIndex + 1;
+          } else {
+              // Moving up. Insert BEFORE the target.
+              // newTargetIndex is correct.
+          }
+
+          this.blocks.splice(newTargetIndex, 0, draggedBlock);
+
+          this.renderBlocks(this.save());
+          this.editor.emit('change');
+      }
+  }
+
   save(): BlockData[] {
     return this.blocks.map(block => block.save());
   }
