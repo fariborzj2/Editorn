@@ -3,6 +3,8 @@ import { IBlock, BlockData } from '../types';
 import { Paragraph } from '../blocks/Paragraph';
 import { Header } from '../blocks/Header';
 import { List } from '../blocks/List';
+import { Quote } from '../blocks/Quote';
+import { ImageBlock } from '../blocks/Image';
 
 export class BlockManager {
   private editor: Editron;
@@ -16,6 +18,8 @@ export class BlockManager {
     this.register('paragraph', Paragraph);
     this.register('header', Header);
     this.register('list', List);
+    this.register('quote', Quote);
+    this.register('image', ImageBlock);
   }
 
   register(type: string, blockClass: any) {
