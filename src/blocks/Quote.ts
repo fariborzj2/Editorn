@@ -1,5 +1,6 @@
 import { IBlock, BlockData } from '../types';
 import { Editron } from '../core/Editron';
+import { Sanitizer } from '../utils/Sanitizer';
 
 export class Quote implements IBlock {
   public id: string;
@@ -17,7 +18,7 @@ export class Quote implements IBlock {
     const content = document.createElement('blockquote');
     content.classList.add('ce-quote');
     content.contentEditable = 'true';
-    content.innerHTML = data.text || '';
+    content.innerHTML = Sanitizer.clean(data.text || '');
     content.dataset.placeholder = 'Enter a quote...';
 
     // Event handling

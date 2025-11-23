@@ -1,5 +1,6 @@
 import { IBlock, BlockData } from '../types';
 import { Editron } from '../core/Editron';
+import { Sanitizer } from '../utils/Sanitizer';
 
 export class Header implements IBlock {
   public id: string;
@@ -19,7 +20,7 @@ export class Header implements IBlock {
     const content = document.createElement(`h${this.level}`);
     content.classList.add('ce-header');
     content.contentEditable = 'true';
-    content.innerHTML = data.text || '';
+    content.innerHTML = Sanitizer.clean(data.text || '');
     content.dataset.placeholder = `Heading ${this.level}`;
 
     // Basic event handling

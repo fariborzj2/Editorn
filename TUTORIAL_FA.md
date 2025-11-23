@@ -1,11 +1,11 @@
-# مستندات توسعه Editron (فاز ۱ تا ۱۲)
+# مستندات توسعه Editron (فاز ۱ تا ۱۳)
 
 این مستندات مراحل توسعه ویرایشگر متن **Editron** را شرح می‌دهد.
 
 ---
 
 ## ۱. مقدمه (Introduction)
-Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۱۲ فاز توسعه تکمیل شده است.
+Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۱۳ فاز توسعه تکمیل شده است.
 
 ---
 
@@ -13,49 +13,38 @@ Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا 
 ```bash
 src/
 ├── blocks/          # بلاک‌ها
-│   ├── Paragraph.ts
-│   ├── Header.ts
-│   ├── List.ts
-│   ├── Quote.ts
-│   ├── Image.ts
-│   ├── Video.ts     # ویدیو (جدید)
-│   ├── Divider.ts
-│   ├── Code.ts
-│   └── Table.ts
 ├── core/            # هسته اصلی
-│   ├── PasteManager.ts # مدیریت Paste (جدید)
+│   ├── HistoryManager.ts # مدیریت تاریخچه (جدید)
 │   ├── ...
 ├── plugins/         # پلاگین‌ها
 ├── utils/           # ابزارها
+│   ├── Sanitizer.ts # پاکسازی امنیتی (جدید)
+│   ├── ...
 └── index.ts
 ```
 
 ---
 
-## ۳. قابلیت‌های فاز ۱۲ (جدید)
+## ۳. قابلیت‌های فاز ۱۳ (جدید)
 
-### ۳.۱. مدیریت Paste (HTML Import)
-قابلیت Paste کردن محتوای HTML از سایر سایت‌ها.
-- **مکانیزم:** کلاس `PasteManager` رویداد `paste` را شنود کرده و HTML دریافتی را پارس می‌کند.
-- **تبدیل:** تگ‌های HTML استاندارد (`p`, `h1-h6`, `ul/ol`, `img`) به بلاک‌های معادل Editron تبدیل می‌شوند.
+### ۳.۱. سیستم تاریخچه (Undo/Redo)
+قابلیت بازگشت به عقب و جلو (`Ctrl+Z` / `Ctrl+Shift+Z` یا `Ctrl+Y`).
+- **مکانیزم:** کلاس `HistoryManager` یک پشته (Stack) از وضعیت‌های JSON کل سند را نگه می‌دارد.
+- **ذخیره‌سازی:** با هر تغییر در سند (`change` event)، وضعیت جدید با کمی تاخیر (debounce) ذخیره می‌شود.
+- **محدودیت:** به صورت پیش‌فرض ۵۰ تغییر آخر ذخیره می‌شود.
 
-### ۳.۲. بلاک ویدیو (Video Embed)
-پشتیبانی از جایگذاری ویدیوهای YouTube و Vimeo.
-- **ایجاد:** از طریق منوی اسلش (`/video`) یا Paste کردن لینک (اگر هندلر آن اضافه شود - فعلاً دستی).
-- **نمایش:** تبدیل لینک به `iframe` ریسپانسیو.
-
----
-
-## ۴. قابلیت‌های قبلی (فاز ۱-۱۱)
-- **Core:** Event System, Autosave, Collaboration, Drag & Drop.
-- **Blocks:** Full standard set.
-- **Features:** AI Assistant (Mock), Theming.
-- **Dev:** Unit Tests, Production Build.
+### ۳.۲. امنیت و پاکسازی (Security & Sanitization)
+افزودن لایه امنیتی برای جلوگیری از حملات XSS.
+- **ابزار:** استفاده از کتابخانه `DOMPurify`.
+- **کاربرد:**
+  - هنگام رندر کردن بلاک‌های متنی (پاراگراف، تیتر، نقل قول، جدول).
+  - هنگام Paste کردن محتوای HTML از منابع خارجی.
+- **تگ‌های مجاز:** فقط تگ‌های امن و فرمت‌دهی (مانند `b`, `i`, `a`, `table`, ...) مجاز هستند و اسکریپت‌ها حذف می‌شوند.
 
 ---
 
 ## ۶. وضعیت فعلی
-- ✅ Core Engine
+- ✅ Core Engine & History
+- ✅ Security (Sanitizer)
 - ✅ All Features & Plugins
-- ✅ Advanced Input (Paste, Embeds)
-- 🏁 **Feature Complete**
+- 🏁 **Project Complete (V1.0)**

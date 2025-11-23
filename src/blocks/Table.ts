@@ -1,5 +1,6 @@
 import { IBlock, BlockData } from '../types';
 import { Editron } from '../core/Editron';
+import { Sanitizer } from '../utils/Sanitizer';
 
 export class Table implements IBlock {
   public id: string;
@@ -72,7 +73,7 @@ export class Table implements IBlock {
               const td = document.createElement('td');
               td.contentEditable = 'true';
               td.classList.add('ce-table-cell');
-              td.innerHTML = cellData;
+              td.innerHTML = Sanitizer.clean(cellData);
               tr.appendChild(td);
           });
           this.table.appendChild(tr);
