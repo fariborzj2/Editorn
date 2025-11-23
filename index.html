@@ -78,6 +78,28 @@
         color: #ccc;
         cursor: text;
       }
+      .editron-inline-toolbar {
+        position: absolute;
+        background: #1e293b;
+        border-radius: 4px;
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+        z-index: 1001;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      }
+      .editron-inline-toolbar .toolbar-btn {
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 4px 8px;
+        cursor: pointer;
+        border-radius: 2px;
+        font-size: 14px;
+      }
+      .editron-inline-toolbar .toolbar-btn:hover {
+        background: rgba(255,255,255,0.1);
+      }
     </style>
   </head>
   <body>

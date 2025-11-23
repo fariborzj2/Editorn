@@ -17,6 +17,8 @@ export class SlashMenu implements IPlugin {
         <div class="menu-item" data-type="header" data-level="2">Heading 2</div>
         <div class="menu-item" data-type="header" data-level="3">Heading 3</div>
         <div class="menu-item" data-type="paragraph">Paragraph</div>
+        <div class="menu-item" data-type="list" data-style="unordered">Bulleted List</div>
+        <div class="menu-item" data-type="list" data-style="ordered">Ordered List</div>
     `;
 
     this.menu.addEventListener('click', (e) => {
@@ -26,9 +28,11 @@ export class SlashMenu implements IPlugin {
             const level = target.dataset.level ? parseInt(target.dataset.level) : undefined;
 
             if (type) {
+                const style = target.dataset.style;
                 this.editor.blockManager.replaceBlock(this.activeBlockId, type, {
                     text: '',
-                    level: level
+                    level: level,
+                    style: style
                 });
             }
             this.close();
