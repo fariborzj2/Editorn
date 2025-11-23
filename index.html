@@ -5,20 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Editron Demo</title>
     <style>
+      :root {
+        --bg-color: #f9f9f9;
+        --editor-bg: #ffffff;
+        --text-color: #000000;
+        --border-color: #e1e1e1;
+        --toolbar-bg: #1e293b;
+        --toolbar-text: #ffffff;
+        --code-bg: #f1f5f9;
+        --quote-color: #555;
+        --quote-border: #ccc;
+      }
+      [data-theme="dark"] {
+        --bg-color: #0f172a;
+        --editor-bg: #1e293b;
+        --text-color: #e2e8f0;
+        --border-color: #334155;
+        --toolbar-bg: #0f172a;
+        --toolbar-text: #e2e8f0;
+        --code-bg: #334155;
+        --quote-color: #94a3b8;
+        --quote-border: #475569;
+      }
       body {
         font-family: system-ui, -apple-system, sans-serif;
         max-width: 800px;
         margin: 0 auto;
         padding: 2rem;
-        background-color: #f9f9f9;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s;
       }
       #editorjs {
-        background: white;
-        border: 1px solid #e1e1e1;
+        background: var(--editor-bg);
+        border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 2rem;
         min-height: 400px;
         box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        transition: background-color 0.3s, border-color 0.3s;
       }
       .ce-block {
         margin-bottom: 1em;
@@ -145,7 +170,7 @@
         border-color: #2563eb;
       }
       .ce-code-wrapper {
-        background: #f1f5f9;
+        background: var(--code-bg);
         padding: 1rem;
         border-radius: 4px;
         margin: 1em 0;
@@ -189,10 +214,42 @@
       .ce-table-controls button:hover {
         background: #e2e8f0;
       }
+      .ce-block-wrapper {
+        position: relative;
+        padding-left: 24px;
+      }
+      .ce-drag-handle {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 24px;
+        height: 100%;
+        cursor: grab;
+        color: #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .ce-block-wrapper:hover .ce-drag-handle {
+        opacity: 1;
+      }
+      .ce-drag-handle:active {
+        cursor: grabbing;
+      }
+      .ce-dragging {
+        opacity: 0.5;
+        background: #f0f9ff;
+      }
+      .ce-drag-over {
+        border-top: 2px solid #2563eb;
+      }
     </style>
   </head>
   <body>
-    <h1>Editron Demo</h1>
+    <h1>Editron Demo <button id="theme-toggle" style="float: right;">🌙</button></h1>
     <div id="editorjs"></div>
 
     <div class="controls">
