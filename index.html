@@ -100,6 +100,42 @@
       .editron-inline-toolbar .toolbar-btn:hover {
         background: rgba(255,255,255,0.1);
       }
+      .ce-quote {
+        border-left: 4px solid #ccc;
+        padding-left: 1rem;
+        font-style: italic;
+        color: #555;
+        margin: 1em 0;
+        outline: none;
+      }
+      .ce-quote[data-placeholder]:empty:before {
+        content: attr(data-placeholder);
+        color: #ddd;
+        cursor: text;
+      }
+      .ce-image-container {
+        text-align: center;
+      }
+      .ce-image {
+        max-width: 100%;
+        border-radius: 4px;
+      }
+      .ce-image-caption {
+        margin-top: 8px;
+        color: #777;
+        font-size: 14px;
+        outline: none;
+      }
+      .ce-image-caption[data-placeholder]:empty:before {
+        content: attr(data-placeholder);
+        color: #ddd;
+      }
+      .ce-image-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
     </style>
   </head>
   <body>
@@ -108,6 +144,7 @@
 
     <div class="controls">
         <button id="save-btn">Save to JSON</button>
+        <button id="export-md-btn">Export to Markdown</button>
     </div>
 
     <div id="output"></div>
