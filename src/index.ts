@@ -1,4 +1,5 @@
 import { Editron } from './core/Editron';
+import { SlashMenu } from './plugins/SlashMenu';
 
 const editor = new Editron({
   holder: 'editorjs',
@@ -11,6 +12,8 @@ const editor = new Editron({
       }
   ]
 });
+
+editor.pluginManager.register(new SlashMenu());
 
 editor.init();
 

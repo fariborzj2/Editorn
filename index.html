@@ -52,6 +52,32 @@
         border-radius: 6px;
         font-family: monospace;
       }
+      .editron-slash-menu {
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-radius: 4px;
+        width: 200px;
+        z-index: 1000;
+      }
+      .menu-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .menu-item:hover {
+        background: #f0f0f0;
+      }
+      .ce-header {
+        font-weight: bold;
+        outline: none;
+      }
+      .ce-header[data-placeholder]:empty:before {
+        content: attr(data-placeholder);
+        color: #ccc;
+        cursor: text;
+      }
     </style>
   </head>
   <body>
