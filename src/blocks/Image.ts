@@ -8,6 +8,7 @@ export class ImageBlock implements IBlock {
   private editor: Editron;
   private url: string = '';
   private caption: string = '';
+  private loading: boolean = false;
 
   constructor(id: string, data: any, editor: Editron) {
     this.id = id;
@@ -28,26 +29,111 @@ export class ImageBlock implements IBlock {
 
   renderInput() {
       this.element.innerHTML = '';
-      const inputWrapper = document.createElement('div');
-      inputWrapper.classList.add('ce-image-input-wrapper');
+      const container = document.createElement('div');
+      container.classList.add('ce-image-upload-area');
+      container.style.border = '2px dashed #ddd';
+      container.style.padding = '20px';
+      container.style.textAlign = 'center';
+      container.style.cursor = 'pointer';
+      container.style.borderRadius = '8px';
+      container.style.backgroundColor = '#f9f9f9';
 
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = 'Paste an image URL...';
-      input.classList.add('ce-image-input');
+      const placeholder = document.createElement('div');
+      placeholder.innerHTML = '📁 ' + (this.editor.t('ui.upload_image') || 'Click to Upload or Paste URL');
 
-      input.addEventListener('keydown', (e) => {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+
+      const urlInput = document.createElement('input');
+      urlInput.type = 'text';
+      urlInput.placeholder = 'Or paste image URL...';
+      urlInput.classList.add('ce-image-input');
+      urlInput.style.marginTop = '10px';
+      urlInput.style.width = '100%';
+      urlInput.style.padding = '8px';
+
+      // Events
+      container.addEventListener('click', (e) => {
+          if (e.target !== urlInput) {
+              fileInput.click();
+          }
+      });
+
+      container.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          container.style.borderColor = '#3388ff';
+      });
+
+      container.addEventListener('dragleave', () => {
+          container.style.borderColor = '#ddd';
+      });
+
+      container.addEventListener('drop', (e) => {
+          e.preventDefault();
+          container.style.borderColor = '#ddd';
+          if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+              this.handleUpload(e.dataTransfer.files[0]);
+          }
+      });
+
+      fileInput.addEventListener('change', () => {
+          if (fileInput.files && fileInput.files.length > 0) {
+              this.handleUpload(fileInput.files[0]);
+          }
+      });
+
+      urlInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
               e.preventDefault();
-              this.url = input.value;
+              this.url = urlInput.value;
               if (this.url) {
                   this.renderImage();
               }
           }
       });
 
-      inputWrapper.appendChild(input);
-      this.element.appendChild(inputWrapper);
+      container.appendChild(placeholder);
+      container.appendChild(fileInput);
+      container.appendChild(urlInput);
+      this.element.appendChild(container);
+  }
+
+  async handleUpload(file: File) {
+      if (this.loading) return;
+      this.loading = true;
+      this.element.innerHTML = '<div class="ce-image-loading">Uploading...</div>';
+
+      try {
+          let url = '';
+          if (this.editor.config.onImageUpload) {
+              url = await this.editor.config.onImageUpload(file);
+          } else {
+              // Mock upload
+              url = await this.mockUpload(file);
+          }
+          this.url = url;
+          this.loading = false;
+          this.renderImage();
+      } catch (e) {
+          console.error('Upload failed', e);
+          this.loading = false;
+          this.renderInput();
+          alert('Upload failed');
+      }
+  }
+
+  mockUpload(file: File): Promise<string> {
+      return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              setTimeout(() => {
+                  resolve(e.target?.result as string);
+              }, 1000);
+          };
+          reader.readAsDataURL(file);
+      });
   }
 
   renderImage() {
