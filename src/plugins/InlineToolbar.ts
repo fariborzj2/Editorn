@@ -12,12 +12,22 @@ export class InlineToolbar implements IPlugin {
     this.toolbar = document.createElement('div');
     this.toolbar.classList.add('editron-inline-toolbar');
     this.toolbar.style.display = 'none';
-    this.toolbar.innerHTML = `
-        <button class="toolbar-btn" data-cmd="bold" aria-label="Bold" title="Bold"><b>B</b></button>
-        <button class="toolbar-btn" data-cmd="italic" aria-label="Italic" title="Italic"><i>I</i></button>
-        <button class="toolbar-btn" data-cmd="underline" aria-label="Underline" title="Underline"><u>U</u></button>
-        <button class="toolbar-btn ce-ai-trigger" data-cmd="ai" aria-label="AI Assistant" title="AI Assistant">✨ AI</button>
-    `;
+    // Content will be rendered in init() when editor (and i18n) is available
+    document.body.appendChild(this.toolbar);
+  }
+
+  init(editor: Editron): void {
+    this.editor = editor;
+    this.renderToolbar();
+
+    document.addEventListener('selectionchange', () => {
+        this.handleSelectionChange();
+    });
+
+    // Also update on mouseup to be sure
+    document.addEventListener('mouseup', () => {
+        setTimeout(() => this.handleSelectionChange(), 0);
+    });
 
     // Prevent loss of focus when clicking buttons
     this.toolbar.addEventListener('mousedown', (e) => {
@@ -37,21 +47,18 @@ export class InlineToolbar implements IPlugin {
             }
         }
     });
-
-    document.body.appendChild(this.toolbar);
   }
 
-  init(editor: Editron): void {
-    this.editor = editor;
+  renderToolbar() {
+     if (!this.editor) return;
+     const t = (k: string) => this.editor!.t(k);
 
-    document.addEventListener('selectionchange', () => {
-        this.handleSelectionChange();
-    });
-
-    // Also update on mouseup to be sure
-    document.addEventListener('mouseup', () => {
-        setTimeout(() => this.handleSelectionChange(), 0);
-    });
+     this.toolbar.innerHTML = `
+        <button class="toolbar-btn" data-cmd="bold" aria-label="${t('toolbar.bold')}" title="${t('toolbar.bold')}"><b>B</b></button>
+        <button class="toolbar-btn" data-cmd="italic" aria-label="${t('toolbar.italic')}" title="${t('toolbar.italic')}"><i>I</i></button>
+        <button class="toolbar-btn" data-cmd="underline" aria-label="${t('toolbar.underline')}" title="${t('toolbar.underline')}"><u>U</u></button>
+        <button class="toolbar-btn ce-ai-trigger" data-cmd="ai" aria-label="${t('toolbar.ai_assist')}" title="${t('toolbar.ai_assist')}">✨ AI</button>
+    `;
   }
 
   handleSelectionChange() {
@@ -104,9 +111,6 @@ export class InlineToolbar implements IPlugin {
 
   triggerAI() {
       if (!this.editor) return;
-      // Find the AI plugin
-      // We need a way to access other plugins. PluginManager has get().
-      // But Editor instance has PluginManager.
       const aiPlugin = this.editor.pluginManager.get('ai-assistant') as AIAssistant;
       if (aiPlugin) {
           const rect = this.toolbar.getBoundingClientRect();

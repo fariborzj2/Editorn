@@ -1,83 +1,48 @@
 import { Editron } from './core/Editron';
-import { SlashMenu } from './plugins/SlashMenu';
-import { InlineToolbar } from './plugins/InlineToolbar';
-import { Autosave } from './plugins/Autosave';
-import { Collaboration } from './plugins/Collaboration';
-import { AIAssistant } from './plugins/AIAssistant';
-import { Exporter } from './utils/Exporter';
+import './style.scss'; // Assuming you might have one, but we used index.html styles.
+// Actually, we should export styles if we were a real library.
 
-const editor = new Editron({
-  holder: 'editorjs',
-  placeholder: 'Let\'s write something awesome!',
-  data: [
-      {
-          type: 'paragraph',
-          id: '123',
-          content: { text: 'Welcome to Editron! Start typing...' }
-      }
-  ]
-});
+// Export core classes
+export { Editron } from './core/Editron';
+export { BlockManager } from './core/BlockManager';
+export { Renderer } from './core/Renderer';
 
-editor.pluginManager.register(new SlashMenu());
-editor.pluginManager.register(new InlineToolbar());
-const autosave = new Autosave();
-editor.pluginManager.register(autosave);
-editor.pluginManager.register(new Collaboration());
-editor.pluginManager.register(new AIAssistant());
+// Export Blocks
+export { Paragraph } from './blocks/Paragraph';
+export { Header } from './blocks/Header';
+export { List } from './blocks/List';
+export { Checklist } from './blocks/Checklist';
+// ... others
 
-editor.init();
+// Export Adapters (optional, usually separate entry points)
+// export { EditronReact } from './adapters/EditronReact';
 
-document.getElementById('save-btn')?.addEventListener('click', () => {
-    editor.save().then(data => {
-        const output = document.getElementById('output');
-        if (output) {
-            output.innerText = JSON.stringify(data, null, 2);
-        }
-    });
-});
+// Initialize for demo if in browser
+if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const locale = urlParams.get('locale') || 'en';
 
-// Theme Handling
-const themeToggle = document.getElementById('theme-toggle');
-const html = document.documentElement;
+    // Check if element exists
+    const holder = document.getElementById('editorjs');
+    if (holder) {
+        const editor = new Editron({
+            holder: holder,
+            placeholder: locale === 'fa' ? 'شروع به نوشتن کنید...' : 'Let`s write an awesome story!',
+            locale: locale,
+            data: [] // Let autosave handle it or start empty
+        });
 
-// Load saved theme
-const savedTheme = localStorage.getItem('editron_theme') || 'light';
-html.setAttribute('data-theme', savedTheme);
-if (themeToggle) {
-    themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-}
+        editor.init();
 
-themeToggle?.addEventListener('click', () => {
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        // Save button handler
+        document.getElementById('save-btn')?.addEventListener('click', () => {
+            editor.save().then((outputData) => {
+                console.log('Article data: ', outputData);
+                alert('Data saved! Check console.');
+            });
+        });
 
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('editron_theme', newTheme);
-
-    if (themeToggle) {
-        themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        // Debug
+        (window as any).editor = editor;
     }
-});
-
-document.getElementById('clear-storage-btn')?.addEventListener('click', () => {
-    autosave.clear();
-    alert('Autosave cleared. Reload to see default content.');
-});
-
-document.getElementById('export-html-btn')?.addEventListener('click', () => {
-    editor.save().then(data => {
-        const output = document.getElementById('output');
-        if (output) {
-            output.innerText = Exporter.toHTML(data);
-        }
-    });
-});
-
-document.getElementById('export-md-btn')?.addEventListener('click', () => {
-    editor.save().then(data => {
-        const output = document.getElementById('output');
-        if (output) {
-            output.innerText = Exporter.toMarkdown(data);
-        }
-    });
-});
+}

@@ -1,48 +1,52 @@
-# مستندات توسعه Editron (فاز ۱ تا ۱۵)
+# مستندات توسعه Editron (فاز ۱ تا ۱۶)
 
 این مستندات مراحل توسعه ویرایشگر متن **Editron** را شرح می‌دهد.
 
 ---
 
 ## ۱. مقدمه (Introduction)
-Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۱۵ فاز توسعه تکمیل شده است.
+Editron یک ویرایشگر متن مدرن و بلاک‌بیس است. تا کنون ۱۶ فاز توسعه تکمیل شده است.
 
 ---
 
 ## ۲. ساختار پروژه (Project Structure)
 ```bash
 src/
-├── blocks/          # بلاک‌ها (شامل Checklist جدید)
+├── blocks/          # بلاک‌ها
 ├── core/            # هسته اصلی
+│   ├── I18n.ts      # مدیریت چندزبانی (جدید)
+│   ├── Editron.ts   # کلاس اصلی
+│   └── ...
+├── locales/         # فایل‌های ترجمه (جدید)
+│   ├── en.ts
+│   └── fa.ts
 ├── plugins/         # پلاگین‌ها
-│   ├── SlashMenu.ts # منوی دستورات
-│   ├── ...
 ├── utils/           # ابزارها
 └── index.ts
 ```
 
 ---
 
-## ۳. قابلیت‌های فاز ۱۵ (Professional Polish)
+## ۳. قابلیت‌های فاز ۱۶ (Internationalization & RTL)
 
-### ۳.۱. بلاک چک‌لیست (Checklist Block)
-اضافه شدن بلاک جدید برای مدیریت وظایف.
-- **Interactive:** قابلیت تیک زدن آیتم‌ها.
-- **Keyboard Support:** دکمه `Enter` برای آیتم جدید و `Backspace` برای حذف.
-- **Slash Menu:** اضافه شدن گزینه Checklist به منو.
+### ۳.۱. پشتیبانی از چندزبانی (i18n)
+اضافه شدن سیستم ترجمه داخلی به هسته ادیتور.
+- **Locales:** تعریف فایل‌های زبان برای انگلیسی (`en`) و فارسی (`fa`).
+- **Translation Utility:** متد `editor.t('key')` برای دسترسی به متون در پلاگین‌ها و بلاک‌ها.
 
-### ۳.۲. زیرساخت حرفه‌ای (CI/CD)
-- **GitHub Actions:** تنظیم فایل `.github/workflows/ci.yml` برای اجرای خودکار بیلد و تست‌ها.
-- **Standard Files:** اضافه شدن `LICENSE` (MIT) و `CHANGELOG.md`.
+### ۳.۲. پشتیبانی از راست‌چین (RTL)
+پشتیبانی کامل از زبان‌های راست‌چین مانند فارسی.
+- **Automatic Direction:** تشخیص جهت متن بر اساس زبان انتخاب شده.
+- **Styles:** تنظیم CSS برای نمایش صحیح لیست‌ها، منوها و آیکون‌ها در حالت RTL.
+- **Demo Update:** قابلیت تغییر زبان در دموی پروژه.
 
 ---
 
-## ۴. قابلیت‌های قبلی (فاز ۱-۱۴)
-- **UX Polish:** Keyboard Nav, A11y, Mobile Responsiveness.
-- **Core:** Event System, Autosave, Collaboration, Drag & Drop, History, Paste Handler.
-- **Blocks:** Full standard set + Table + Video.
-- **Features:** AI Assistant (Mock), Theming, Security (Sanitizer).
-- **Dev:** Unit Tests, Production Build, Framework Adapters.
+## ۴. قابلیت‌های قبلی (فاز ۱-۱۵)
+- **Features:** Checklist Block, Slash Menu, Inline Toolbar, Autosave, Collaboration.
+- **Core:** Event System, History (Undo/Redo), Sanitizer.
+- **DevOps:** CI/CD, Unit Tests.
+- **UX:** Mobile Responsiveness, A11y.
 
 ---
 
@@ -51,5 +55,6 @@ src/
 - ✅ Security (Sanitizer)
 - ✅ All Features & Plugins
 - ✅ UX Polish (A11y, Mobile)
-- ✅ **Professional Polish (Checklist, CI/CD, Docs)**
-- 🚀 **Ready for Production (V1.2)**
+- ✅ Professional Polish (CI/CD)
+- ✅ **Global Ready (i18n, RTL)**
+- 🚀 **Final Release (V1.3)**
