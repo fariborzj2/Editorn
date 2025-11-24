@@ -13,10 +13,10 @@ export class InlineToolbar implements IPlugin {
     this.toolbar.classList.add('editron-inline-toolbar');
     this.toolbar.style.display = 'none';
     this.toolbar.innerHTML = `
-        <button class="toolbar-btn" data-cmd="bold"><b>B</b></button>
-        <button class="toolbar-btn" data-cmd="italic"><i>I</i></button>
-        <button class="toolbar-btn" data-cmd="underline"><u>U</u></button>
-        <button class="toolbar-btn ce-ai-trigger" data-cmd="ai">✨ AI</button>
+        <button class="toolbar-btn" data-cmd="bold" aria-label="Bold" title="Bold"><b>B</b></button>
+        <button class="toolbar-btn" data-cmd="italic" aria-label="Italic" title="Italic"><i>I</i></button>
+        <button class="toolbar-btn" data-cmd="underline" aria-label="Underline" title="Underline"><u>U</u></button>
+        <button class="toolbar-btn ce-ai-trigger" data-cmd="ai" aria-label="AI Assistant" title="AI Assistant">✨ AI</button>
     `;
 
     // Prevent loss of focus when clicking buttons

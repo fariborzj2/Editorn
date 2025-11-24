@@ -13,10 +13,10 @@ export class AIAssistant implements IPlugin {
     this.dialog.innerHTML = `
         <div class="ce-ai-header">✨ AI Assistant</div>
         <div class="ce-ai-options">
-            <button data-action="summarize">Summarize</button>
-            <button data-action="expand">Expand</button>
-            <button data-action="fix">Fix Grammar</button>
-            <button data-action="make-funny">Make Funny</button>
+            <button data-action="summarize" aria-label="Summarize text">Summarize</button>
+            <button data-action="expand" aria-label="Expand text">Expand</button>
+            <button data-action="fix" aria-label="Fix grammar">Fix Grammar</button>
+            <button data-action="make-funny" aria-label="Make text funny">Make Funny</button>
         </div>
         <div class="ce-ai-loading" style="display:none;">Thinking...</div>
     `;
