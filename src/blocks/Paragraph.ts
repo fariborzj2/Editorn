@@ -20,6 +20,7 @@ export class Paragraph implements IBlock {
     content.classList.add('ce-paragraph');
     content.contentEditable = 'true';
     content.innerHTML = Sanitizer.clean(data.text || '');
+    content.setAttribute('data-placeholder', this.editor.t('ui.placeholder'));
 
     // Basic event handling
     content.addEventListener('keydown', (e) => {

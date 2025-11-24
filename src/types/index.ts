@@ -23,4 +23,6 @@ export interface EditronConfig {
   data?: BlockData[];
   placeholder?: string;
   theme?: 'light' | 'dark';
+  locale?: string;
+  i18n?: Record<string, any>;
 }

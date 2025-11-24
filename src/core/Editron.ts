@@ -5,6 +5,9 @@ import { Renderer } from './Renderer'; // Will create in next step
 import { PasteManager } from './PasteManager';
 import { HistoryManager } from './HistoryManager';
 import { EditronConfig, BlockData } from '../types';
+import { I18n } from './I18n';
+import { en } from '../locales/en';
+import { fa } from '../locales/fa';
 
 export class Editron extends EventEmitter {
   public config: EditronConfig;
@@ -13,10 +16,21 @@ export class Editron extends EventEmitter {
   public renderer: Renderer;
   public historyManager: HistoryManager;
   public holder: HTMLElement;
+  public i18n: I18n;
 
   constructor(config: EditronConfig) {
     super();
     this.config = config;
+
+    // Initialize I18n
+    this.i18n = new I18n({
+        locale: config.locale || 'en',
+        messages: {
+            en: en,
+            fa: fa,
+            ...config.i18n
+        }
+    });
 
     if (typeof config.holder === 'string') {
       const el = document.getElementById(config.holder);
@@ -27,6 +41,12 @@ export class Editron extends EventEmitter {
     }
 
     this.holder.classList.add('editron-editor');
+
+    // Set text direction
+    if (this.i18n.isRTL()) {
+        this.holder.setAttribute('dir', 'rtl');
+        this.holder.classList.add('editron-rtl');
+    }
 
     // Capture input events to detect content changes
     this.holder.addEventListener('input', (e) => {
@@ -112,5 +132,9 @@ export class Editron extends EventEmitter {
 
   public save(): Promise<BlockData[]> {
     return Promise.resolve(this.blockManager.save());
+  }
+
+  public t(key: string): string {
+      return this.i18n.t(key);
   }
 }
