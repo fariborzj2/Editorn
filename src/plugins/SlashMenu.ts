@@ -21,6 +21,7 @@ export class SlashMenu implements IPlugin {
         <div class="menu-item" data-type="paragraph">Paragraph</div>
         <div class="menu-item" data-type="list" data-style="unordered">Bulleted List</div>
         <div class="menu-item" data-type="list" data-style="ordered">Ordered List</div>
+        <div class="menu-item" data-type="checklist">Checklist</div>
         <div class="menu-item" data-type="quote">Quote</div>
         <div class="menu-item" data-type="image">Image</div>
         <div class="menu-item" data-type="divider">Divider</div>
