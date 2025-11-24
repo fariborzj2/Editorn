@@ -25,4 +25,5 @@ export interface EditronConfig {
   theme?: 'light' | 'dark';
   locale?: string;
   i18n?: Record<string, any>;
+  onImageUpload?: (file: File) => Promise<string>;
 }
