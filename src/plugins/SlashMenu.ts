@@ -8,6 +8,7 @@ export class SlashMenu implements IPlugin {
   private menu: HTMLElement;
   private activeBlockId: string | null = null;
   private isOpen: boolean = false;
+  private selectedIndex: number = 0;
 
   constructor() {
     this.menu = document.createElement('div');
@@ -64,6 +65,16 @@ export class SlashMenu implements IPlugin {
         this.handleKeyUp(e);
     });
 
+    // We need keydown to prevent cursor movement when navigating menu
+    this.editor.holder.addEventListener('keydown', (e) => {
+        if (this.isOpen) {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter') {
+                e.preventDefault();
+                this.handleNavigation(e);
+            }
+        }
+    });
+
     document.addEventListener('click', (e) => {
         if (!this.menu.contains(e.target as Node)) {
             this.close();
@@ -71,7 +82,37 @@ export class SlashMenu implements IPlugin {
     });
   }
 
-  handleKeyUp(_e: KeyboardEvent) { // Renamed e to _e to suppress unused warning if that was it
+  handleNavigation(e: KeyboardEvent) {
+      const items = this.menu.querySelectorAll('.menu-item');
+      if (items.length === 0) return;
+
+      if (e.key === 'ArrowUp') {
+          this.selectedIndex = (this.selectedIndex - 1 + items.length) % items.length;
+          this.updateSelection();
+      } else if (e.key === 'ArrowDown') {
+          this.selectedIndex = (this.selectedIndex + 1) % items.length;
+          this.updateSelection();
+      } else if (e.key === 'Enter') {
+          const selectedItem = items[this.selectedIndex] as HTMLElement;
+          if (selectedItem) {
+              selectedItem.click();
+          }
+      }
+  }
+
+  updateSelection() {
+      const items = this.menu.querySelectorAll('.menu-item');
+      items.forEach((item, index) => {
+          if (index === this.selectedIndex) {
+              item.classList.add('selected');
+              item.scrollIntoView({ block: 'nearest' });
+          } else {
+              item.classList.remove('selected');
+          }
+      });
+  }
+
+  handleKeyUp(_e: KeyboardEvent) {
       if (!this.editor) return;
 
       const selection = window.getSelection();
@@ -97,10 +138,12 @@ export class SlashMenu implements IPlugin {
 
   open(blockEl: HTMLElement) {
       this.isOpen = true;
+      this.selectedIndex = 0;
       const rect = blockEl.getBoundingClientRect();
       this.menu.style.display = 'block';
       this.menu.style.top = `${rect.bottom + window.scrollY}px`;
       this.menu.style.left = `${rect.left + window.scrollX}px`;
+      this.updateSelection();
   }
 
   triggerAIGenerate(target: HTMLElement) {

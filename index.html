@@ -91,7 +91,7 @@
         cursor: pointer;
         font-size: 14px;
       }
-      .menu-item:hover {
+      .menu-item:hover, .menu-item.selected {
         background: #f0f0f0;
       }
       .ce-header {
@@ -214,6 +214,12 @@
       .ce-table-controls button:hover {
         background: #e2e8f0;
       }
+      @media (max-width: 600px) {
+        body { padding: 1rem; }
+        #editorjs { padding: 1rem; min-height: 300px; }
+        .editron-inline-toolbar { flex-wrap: wrap; }
+        .ce-delete-btn { right: 0; background: rgba(255,255,255,0.8); }
+      }
       .ce-block-wrapper {
         position: relative;
         padding-left: 24px;
@@ -330,8 +336,8 @@
     </style>
   </head>
   <body>
-    <h1>Editron Demo <button id="theme-toggle" style="float: right;">🌙</button></h1>
-    <div id="editorjs"></div>
+    <h1>Editron Demo <button id="theme-toggle" style="float: right;" aria-label="Toggle Theme">🌙</button></h1>
+    <div id="editorjs" role="textbox" aria-multiline="true"></div>
 
     <div class="controls">
         <button id="save-btn">Save to JSON</button>
