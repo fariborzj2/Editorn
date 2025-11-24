@@ -1,0 +1,9 @@
+// Core editor styles
+.editron-editor {
+    /* Basic reset/defaults for the editor area */
+    box-sizing: border-box;
+
+    * {
+        box-sizing: inherit;
+    }
+}
