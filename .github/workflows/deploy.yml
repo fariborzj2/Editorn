@@ -1,14 +1,19 @@
-name: Build and Deploy
+name: Deploy Static Content to Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
+  # Single deploy job since we're just building and pushing to a branch
   deploy:
     runs-on: ubuntu-latest
 
@@ -19,21 +24,20 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install deps
         run: npm install
 
-      - name: Build project
-        run: npm run build
+      - name: Build
+        run: npm run build:site
 
-      # Fallback method: Push to gh-pages branch.
-      # This works even if "GitHub Actions" source is not enabled,
-      # provided the user selects "Deploy from Branch: gh-pages".
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist-site
           force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
