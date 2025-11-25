@@ -16,6 +16,7 @@ jobs:
   # Single deploy job since we're just building and pushing to a branch
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,8 +27,8 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install deps
+        run: npm install
 
       - name: Build
         run: npm run build:site
