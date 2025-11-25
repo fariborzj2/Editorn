@@ -2,13 +2,13 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 export default defineConfig({
-  base: './', // Use relative paths so it works on any subdirectory (like GitHub Pages repo/project)
+  base: '/Editorn/', // مسیر صحیح برای GitHub Pages
   build: {
-    outDir: 'dist',
+    outDir: 'dist-site', // خروجی را اینجا بفرست تا با خروجی کلونت هماهنگ باشد
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html')
+        main: path.resolve(__dirname, 'index.html') // اگر index.html در روت است
       }
     }
   }
