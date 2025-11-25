@@ -1,4 +1,8 @@
 import { Editron } from './core/Editron';
+import { Toolbar } from './plugins/Toolbar';
+import { SlashMenu } from './plugins/SlashMenu';
+import { AIAssistant } from './plugins/AIAssistant';
+import { Autosave } from './plugins/Autosave';
 import './style.scss'; // Assuming you might have one, but we used index.html styles.
 // Actually, we should export styles if we were a real library.
 
@@ -33,6 +37,13 @@ if (typeof window !== 'undefined') {
         });
 
         editor.init();
+
+        // Register Plugins
+        // The user requested a fixed toolbar, so we use Toolbar instead of InlineToolbar
+        editor.pluginManager.register(new Toolbar());
+        editor.pluginManager.register(new SlashMenu());
+        editor.pluginManager.register(new AIAssistant());
+        editor.pluginManager.register(new Autosave());
 
         // Save button handler
         document.getElementById('save-btn')?.addEventListener('click', () => {
