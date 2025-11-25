@@ -6,16 +6,20 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write        # برای پوش کردن به gh-pages
+  pages: write           # برای مدیریت GitHub Pages
+  id-token: write        # برای امنیت امضا
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just building and pushing to a branch
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
 
     steps:
       - name: Checkout
@@ -24,20 +28,21 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
 
-      - name: Install deps
+      - name: Install dependencies
         run: npm install
 
-      - name: Build
+      - name: Build project
         run: npm run build:site
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v3
+      # این بخش اکشن جدید و رسمی GitHub است برای deploy
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: /
-          force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+          path: dist-site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
