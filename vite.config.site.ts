@@ -4,7 +4,7 @@ import path from 'path';
 export default defineConfig({
   base: './', // Use relative paths so it works on any subdirectory (like GitHub Pages repo/project)
   build: {
-    outDir: 'dist-site',
+    outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
       input: {
