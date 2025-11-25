@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: https:;">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+    <title>Editron - Modular Block Editor</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            min-height: 80vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #444;
+        }
+
+        button.secondary {
+            background: #fff;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        button.secondary:hover {
+            background: #f5f5f5;
+        }
+
+        /* Editor Styles */
+        .editron-editor {
+            outline: none;
+        }
+
+        .ce-block {
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        /* Drag Handle */
+        .ce-block-wrapper {
+             position: relative;
+             display: flex;
+             align-items: flex-start;
+        }
+
+        .ce-drag-handle {
+             width: 24px;
+             height: 24px;
+             cursor: grab;
+             opacity: 0;
+             transition: opacity 0.2s;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             color: #aaa;
+             margin-right: 8px; /* LTR default */
+        }
+
+        .editron-rtl .ce-drag-handle {
+            margin-right: 0;
+            margin-left: 8px;
+        }
+
+        .ce-block-wrapper:hover .ce-drag-handle {
+             opacity: 1;
+        }
+
+        .ce-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .ce-block-content {
+            flex-grow: 1;
+            /* In RTL, this ensures content aligns correctly */
+        }
+
+        .ce-paragraph {
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* Placeholder */
+        .ce-paragraph:empty:before {
+            content: attr(data-placeholder);
+            color: #aaa;
+            pointer-events: none;
+        }
+
+        .ce-header {
+            font-weight: bold;
+            line-height: 1.25;
+            margin: 0;
+        }
+        h1.ce-header { font-size: 2em; }
+        h2.ce-header { font-size: 1.5em; }
+        h3.ce-header { font-size: 1.25em; }
+
+        .ce-list {
+            margin: 0;
+            padding-left: 40px;
+        }
+        .ce-list-item {
+            padding: 4px 0;
+        }
+
+        /* RTL List */
+        .editron-rtl .ce-list {
+            padding-left: 0;
+            padding-right: 40px;
+        }
+
+        .ce-quote {
+            border-left: 3px solid #333;
+            padding-left: 16px;
+            font-style: italic;
+            background: #f9f9f9;
+            padding: 12px 16px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .editron-rtl .ce-quote {
+            border-left: none;
+            border-right: 3px solid #333;
+            padding-left: 0;
+            padding-right: 16px;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .ce-image img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+
+        .ce-image-caption {
+            margin-top: 5px;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+
+        /* Slash Menu */
+        .editron-slash-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            width: 200px;
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .menu-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .menu-item:hover, .menu-item.selected {
+            background: #f5f5f5;
+        }
+
+        /* Inline Toolbar */
+        .editron-inline-toolbar {
+            position: absolute;
+            background: #333;
+            border-radius: 4px;
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            z-index: 1000;
+        }
+
+        .toolbar-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .toolbar-btn:hover {
+            background: #555;
+        }
+
+        .toolbar-btn.ce-ai-trigger {
+            color: #a78bfa; /* Purple tint for AI */
+        }
+
+        /* Dark Theme */
+        body[data-theme='dark'] {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        body[data-theme='dark'] .container {
+            background-color: #242424;
+            color: #e0e0e0;
+        }
+
+        body[data-theme='dark'] .header {
+            border-bottom-color: #333;
+        }
+
+        body[data-theme='dark'] button.secondary {
+            background: #333;
+            color: #eee;
+            border-color: #444;
+        }
+
+        body[data-theme='dark'] h1 {
+            color: #fff;
+        }
+
+        body[data-theme='dark'] .editron-slash-menu {
+            background: #333;
+            border-color: #444;
+            color: #eee;
+        }
+
+        body[data-theme='dark'] .menu-item:hover, body[data-theme='dark'] .menu-item.selected {
+            background: #444;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .ce-drag-handle {
+                display: none; /* Hide drag handles on mobile usually */
+            }
+            .editron-slash-menu {
+                width: 100%;
+                left: 0 !important;
+                right: 0 !important;
+            }
+        }
+
+        /* Checklist Styles */
+        .ce-checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .ce-checklist-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .editron-rtl .ce-checklist-checkbox {
+            margin-right: 0;
+            margin-left: 10px;
+        }
+        .ce-checklist-checked {
+            background-color: #3388ff;
+            border-color: #3388ff;
+        }
+        .ce-checklist-checked::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+        }
+        .ce-checklist-text {
+            flex-grow: 1;
+            outline: none;
+        }
+        .ce-checklist-checked + .ce-checklist-text {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+
+        /* RTL Body overrides if switched */
+        body.rtl-mode {
+            direction: rtl;
+        }
+    </style>
+  <script type="module" crossorigin src="/Editorn/assets/main-D-jPZNLD.js"></script>
+  <link rel="stylesheet" crossorigin href="/Editorn/assets/main-DI-FFEmO.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Editron Demo</h1>
+            <div class="controls">
+                <button id="toggle-locale-btn" class="secondary">Switch to Persian (FA)</button>
+                <button id="toggle-theme-btn" class="secondary">Toggle Theme</button>
+                <button id="clear-storage-btn" class="secondary">Clear Data</button>
+                <button id="save-btn">Save to Console</button>
+            </div>
+        </div>
+        <div id="editorjs"></div>
+    </div>
+
+    <script>
+        // Simple logic to reload with locale param or toggle it
+        const btn = document.getElementById('toggle-locale-btn');
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLocale = urlParams.get('locale') || 'en';
+
+        if (currentLocale === 'fa') {
+            document.body.classList.add('rtl-mode');
+            btn.textContent = "Switch to English (EN)";
+            // Update Title
+            document.querySelector('h1').textContent = "دموی ادیرون";
+            document.title = "ادیرون - ویرایشگر بلوکی";
+        }
+
+        btn.addEventListener('click', () => {
+            const newLocale = currentLocale === 'en' ? 'fa' : 'en';
+            urlParams.set('locale', newLocale);
+            window.location.search = urlParams.toString();
+        });
+
+        // Theme Toggle
+        const themeBtn = document.getElementById('toggle-theme-btn');
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem('editron-theme', isDark ? 'light' : 'dark');
+        });
+
+        // Restore theme
+        const savedTheme = localStorage.getItem('editron-theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+        }
+
+        // Clear Storage
+        document.getElementById('clear-storage-btn').addEventListener('click', () => {
+            localStorage.removeItem('editron-autosave');
+            localStorage.removeItem('editron-theme');
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
