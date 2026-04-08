@@ -50,27 +50,114 @@ export class EditorCore {
 
   handleGlobalKeydown(e) {
     if (e.key === 'Enter') {
-      // Find the current active block
-      // This is a simplified version; a full implementation requires Selection API management.
       e.preventDefault();
       const currentBlockIndex = this.findActiveBlockIndex();
+      if (currentBlockIndex === -1) return;
 
-      const newBlock = this.blockManager.insertBlock('paragraph', {}, currentBlockIndex + 1);
+      const currentBlock = this.blockManager.getBlocks()[currentBlockIndex];
+      const selection = window.getSelection();
 
-      // Re-render blocks
+      let textAfterCursor = '';
+      let textBeforeCursor = currentBlock.element.innerHTML;
+
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+
+        if (currentBlock.element.contains(range.startContainer)) {
+          const preRange = range.cloneRange();
+          preRange.selectNodeContents(currentBlock.element);
+          preRange.setEnd(range.startContainer, range.startOffset);
+
+          const postRange = range.cloneRange();
+          postRange.selectNodeContents(currentBlock.element);
+          postRange.setStart(range.endContainer, range.endOffset);
+
+          const postFragment = postRange.cloneContents();
+          const tempDiv = document.createElement('div');
+          tempDiv.appendChild(postFragment);
+          textAfterCursor = tempDiv.innerHTML;
+
+          const preFragment = preRange.cloneContents();
+          const tempDiv2 = document.createElement('div');
+          tempDiv2.appendChild(preFragment);
+          textBeforeCursor = tempDiv2.innerHTML;
+        }
+      }
+
+      currentBlock.element.innerHTML = textBeforeCursor || '<br>';
+      if (currentBlock.instance.data) {
+          currentBlock.instance.data.text = textBeforeCursor;
+      }
+
+      const newBlock = this.blockManager.insertBlock('paragraph', { text: textAfterCursor }, currentBlockIndex + 1);
+
       this.renderer.renderBlocks(this.blockManager.getBlocks());
 
-      // Focus the new block
       if (newBlock && newBlock.element) {
         newBlock.element.focus();
+        const newSelection = window.getSelection();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(newBlock.element);
+        newRange.collapse(true);
+        newSelection.removeAllRanges();
+        newSelection.addRange(newRange);
       }
 
       this.triggerChange();
     } else if (e.key === 'Backspace') {
+      const currentBlockIndex = this.findActiveBlockIndex();
+      if (currentBlockIndex <= 0) return;
+
       const selection = window.getSelection();
-      if (selection.isCollapsed && selection.focusOffset === 0) {
-         // Prevent deleting the first character from acting like a block delete if not at start of block
-         // Real logic requires more advanced DOM selection check.
+      if (selection.rangeCount > 0 && selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        const currentBlock = this.blockManager.getBlocks()[currentBlockIndex];
+
+        const preRange = range.cloneRange();
+        preRange.selectNodeContents(currentBlock.element);
+        preRange.setEnd(range.startContainer, range.startOffset);
+
+        const textBeforeCursor = preRange.toString();
+
+        if (textBeforeCursor.length === 0) {
+          e.preventDefault();
+          const previousBlock = this.blockManager.getBlocks()[currentBlockIndex - 1];
+
+          const markerId = 'cursor-marker-' + Date.now();
+          const marker = `<span id="${markerId}"></span>`;
+
+          const prevHtml = previousBlock.element.innerHTML === '<br>' ? '' : previousBlock.element.innerHTML;
+          const currHtml = currentBlock.element.innerHTML === '<br>' ? '' : currentBlock.element.innerHTML;
+
+          previousBlock.element.innerHTML = prevHtml + marker + currHtml;
+
+          if (previousBlock.element.innerHTML === '') {
+              previousBlock.element.innerHTML = '<br>';
+          }
+
+          this.blockManager.removeBlock(currentBlockIndex);
+
+          this.renderer.renderBlocks(this.blockManager.getBlocks());
+
+          const markerEl = document.getElementById(markerId);
+          if (markerEl) {
+            const newSelection = window.getSelection();
+            const newRange = document.createRange();
+            newRange.setStartBefore(markerEl);
+            newRange.collapse(true);
+            newSelection.removeAllRanges();
+            newSelection.addRange(newRange);
+            markerEl.remove();
+          } else {
+             previousBlock.element.focus();
+          }
+
+          if (previousBlock.instance.data) {
+              previousBlock.instance.data.text = previousBlock.element.innerHTML;
+          }
+
+          this.triggerChange();
+        }
       }
     }
   }
