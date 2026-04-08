@@ -1,0 +1,68 @@
+import { BaseInlineTool } from './BaseInlineTool.js';
+
+export class LinkTool extends BaseInlineTool {
+  getIcon() {
+    return `🔗`; // Minimalist icon
+  }
+
+  getTitle() {
+    return 'Link';
+  }
+
+  isActiveOnNode(node) {
+    return node.nodeName === 'A';
+  }
+
+  createWrapper(url = '#') {
+    const a = document.createElement('a');
+    // Basic sanitization: only allow http/https/mailto/tel or relative urls. No javascript: or data:
+    const sanitizedUrl = url.trim();
+    if (/^(javascript|data|vbscript):/i.test(sanitizedUrl)) {
+        a.href = '#';
+    } else {
+        a.href = sanitizedUrl;
+    }
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    return a;
+  }
+
+  surround() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    if (range.collapsed) return;
+
+    let element = range.commonAncestorContainer;
+    element = element.nodeType === Node.ELEMENT_NODE ? element : element.parentElement;
+
+    let unwrappingNode = null;
+    while (element && this.api.container.contains(element) && element !== this.api.container) {
+        if (this.isActiveOnNode(element)) {
+            unwrappingNode = element;
+            break;
+        }
+        element = element.parentElement;
+    }
+
+    if (unwrappingNode) {
+       // Unwrap (remove link)
+       const textNode = document.createTextNode(unwrappingNode.textContent);
+       unwrappingNode.parentNode.replaceChild(textNode, unwrappingNode);
+       this.api.triggerChange();
+       this.checkState(window.getSelection());
+    } else {
+       // Wrap (add link)
+       const url = prompt('Enter link URL:');
+       if (url) {
+           const extractedContent = range.extractContents();
+           const wrapper = this.createWrapper(url);
+           wrapper.appendChild(extractedContent);
+           range.insertNode(wrapper);
+           this.api.triggerChange();
+           this.checkState(window.getSelection());
+       }
+    }
+  }
+}

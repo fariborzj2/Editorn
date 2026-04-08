@@ -1,0 +1,33 @@
+/* Base styles for Inline Toolbar (Phase 2) */
+
+.editorn-inline-toolbar {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+}
+
+.editorn-inline-tool {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+}
+
+.editorn-inline-tool:hover {
+    background-color: #f0f0f0;
+}
+
+.editorn-inline-tool.active {
+    background-color: #e0e0e0;
+    color: #000;
+    font-weight: bold;
+}

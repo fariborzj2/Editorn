@@ -1,5 +1,6 @@
 import { BlockManager } from './BlockManager.js';
 import { Renderer } from './Renderer.js';
+import { PluginManager } from './PluginManager.js';
 
 export class EditorCore {
   constructor(config) {
@@ -27,6 +28,7 @@ export class EditorCore {
 
     this.renderer = new Renderer(this.container);
     this.blockManager = new BlockManager(this);
+    this.pluginManager = new PluginManager(this);
 
     this.renderInitialData();
 
