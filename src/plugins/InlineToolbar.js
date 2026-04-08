@@ -29,7 +29,7 @@ export class InlineToolbar {
   }
 
   registerTools() {
-    const toolsToLoad = this.config.tools || [];
+    const toolsToLoad = this.config.tools || this.config.inlineTools || [];
     toolsToLoad.forEach(ToolClass => {
         const tool = new ToolClass({ api: this.api });
         this.tools.push(tool);

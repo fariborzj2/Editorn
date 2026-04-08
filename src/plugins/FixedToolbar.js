@@ -37,6 +37,10 @@ export class FixedToolbar {
     }
 
     registerInlineTools() {
+        const toolsToLoad = this.config.tools || this.config.inlineTools || [];
+
+        if (toolsToLoad.length === 0) return;
+
         const toolsGroup = document.createElement('div');
         toolsGroup.classList.add('editorn-toolbar-group');
         toolsGroup.style.display = 'flex';
@@ -44,7 +48,6 @@ export class FixedToolbar {
         toolsGroup.style.borderRight = '1px solid #eee';
         toolsGroup.style.paddingRight = '8px';
 
-        const toolsToLoad = this.config.inlineTools || [];
         toolsToLoad.forEach(ToolClass => {
             const tool = new ToolClass({ api: this.api });
             this.tools.push(tool);
@@ -55,6 +58,11 @@ export class FixedToolbar {
     }
 
     registerBlockTools() {
+        // Read from config.blocks (array of strings, e.g. ['paragraph', 'header', 'list']), default to all if not provided
+        const configuredBlocks = this.config.blocks || ['paragraph', 'header', 'list', 'quote', 'divider', 'image', 'embed', 'table', 'code'];
+
+        if (configuredBlocks.length === 0) return;
+
         const blocksGroup = document.createElement('div');
         blocksGroup.classList.add('editorn-toolbar-group');
         blocksGroup.style.display = 'flex';
@@ -72,19 +80,22 @@ export class FixedToolbar {
             code: renderLucideIcon(Code)
         };
 
-        const blocks = [
-            { type: 'paragraph', icon: icons.paragraph, title: 'Paragraph' },
-            { type: 'header', icon: icons.header, title: 'Header' },
-            { type: 'list', icon: icons.list, title: 'List' },
-            { type: 'quote', icon: icons.quote, title: 'Quote' },
-            { type: 'divider', icon: icons.divider, title: 'Divider' },
-            { type: 'image', icon: icons.image, title: 'Image' },
-            { type: 'embed', icon: icons.embed, title: 'Embed' },
-            { type: 'table', icon: icons.table, title: 'Table' },
-            { type: 'code', icon: icons.code, title: 'Code' }
-        ];
+        const availableBlocks = {
+            paragraph: { type: 'paragraph', icon: icons.paragraph, title: 'Paragraph' },
+            header: { type: 'header', icon: icons.header, title: 'Header' },
+            list: { type: 'list', icon: icons.list, title: 'List' },
+            quote: { type: 'quote', icon: icons.quote, title: 'Quote' },
+            divider: { type: 'divider', icon: icons.divider, title: 'Divider' },
+            image: { type: 'image', icon: icons.image, title: 'Image' },
+            embed: { type: 'embed', icon: icons.embed, title: 'Embed' },
+            table: { type: 'table', icon: icons.table, title: 'Table' },
+            code: { type: 'code', icon: icons.code, title: 'Code' }
+        };
 
-        blocks.forEach(block => {
+        configuredBlocks.forEach(blockType => {
+            const block = availableBlocks[blockType];
+            if (!block) return;
+
             const button = document.createElement('button');
             button.innerHTML = block.icon;
             button.title = block.title;
