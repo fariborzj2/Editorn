@@ -4,6 +4,8 @@ import { Header } from '../blocks/Header.js';
 import { List } from '../blocks/List.js';
 import { Quote } from '../blocks/Quote.js';
 import { Divider } from '../blocks/Divider.js';
+import { Image } from '../blocks/Image.js';
+import { Embed } from '../blocks/Embed.js';
 
 export class BlockManager {
   constructor(editor) {
@@ -14,7 +16,9 @@ export class BlockManager {
       header: Header,
       list: List,
       quote: Quote,
-      divider: Divider
+      divider: Divider,
+      image: Image,
+      embed: Embed
     };
   }
 
