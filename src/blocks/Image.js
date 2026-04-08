@@ -37,15 +37,15 @@ export class Image {
   }
 
   renderImage() {
-    // TODO: Phase 4 - Add support for resizing
     this.imageEl = document.createElement('img');
     this.imageEl.src = this.data.url;
     this.imageEl.alt = this.data.caption || 'Image';
+    this.imageEl.style.maxWidth = '100%';
+    this.imageEl.style.display = 'block';
     this.wrapper.insertBefore(this.imageEl, this.captionEl);
   }
 
   renderUploader() {
-      // TODO: Phase 4 - Implement fully functioning drag & drop and file input UI using onImageUpload callback
       const uploaderUI = document.createElement('div');
       uploaderUI.classList.add('editorn-image-uploader');
       uploaderUI.textContent = 'Drag an image here or click to upload';
@@ -53,15 +53,68 @@ export class Image {
       uploaderUI.style.padding = '20px';
       uploaderUI.style.textAlign = 'center';
       uploaderUI.style.cursor = 'pointer';
+      uploaderUI.style.backgroundColor = '#fafafa';
 
-      // Example stub interaction
-      uploaderUI.addEventListener('click', () => {
-          const url = prompt('Enter image URL (temporary stub for testing):');
-          if (url) {
-              this.data.url = url;
-              this.wrapper.removeChild(uploaderUI);
-              this.renderImage();
-              this.api.triggerChange();
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+      uploaderUI.appendChild(fileInput);
+
+      const handleUpload = (file) => {
+          if (!file) return;
+          uploaderUI.textContent = 'Uploading...';
+
+          const onImageUpload = this.api.config.onImageUpload;
+          if (onImageUpload && typeof onImageUpload === 'function') {
+              onImageUpload(file).then(url => {
+                  if (url) {
+                      this.data.url = url;
+                      this.wrapper.removeChild(uploaderUI);
+                      this.renderImage();
+                      this.api.triggerChange();
+                  } else {
+                      uploaderUI.textContent = 'Upload failed. Try again.';
+                  }
+              }).catch(() => {
+                  uploaderUI.textContent = 'Upload failed. Try again.';
+              });
+          } else {
+              // Fallback: Read as Data URL
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                  this.data.url = e.target.result;
+                  this.wrapper.removeChild(uploaderUI);
+                  this.renderImage();
+                  this.api.triggerChange();
+              };
+              reader.readAsDataURL(file);
+          }
+      };
+
+      uploaderUI.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+              handleUpload(e.target.files[0]);
+          }
+      });
+
+      uploaderUI.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploaderUI.style.backgroundColor = '#eef';
+      });
+
+      uploaderUI.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          uploaderUI.style.backgroundColor = '#fafafa';
+      });
+
+      uploaderUI.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploaderUI.style.backgroundColor = '#fafafa';
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+              handleUpload(e.dataTransfer.files[0]);
           }
       });
 
