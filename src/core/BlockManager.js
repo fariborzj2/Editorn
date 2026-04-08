@@ -52,6 +52,15 @@ export class BlockManager {
     return false;
   }
 
+  moveBlock(fromIndex, toIndex) {
+      if (fromIndex >= 0 && fromIndex < this.blocks.length && toIndex >= 0 && toIndex <= this.blocks.length) {
+          const [block] = this.blocks.splice(fromIndex, 1);
+          this.blocks.splice(toIndex, 0, block);
+          return true;
+      }
+      return false;
+  }
+
   getBlocks() {
     return this.blocks;
   }
