@@ -1,0 +1,187 @@
+/**
+ * BaseEditor - Lightweight Rich Text Editor Styles
+ * Scoped under .base-editor to prevent global pollution
+ */
+
+.base-editor-container {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-white);
+    /* overflow: hidden; */
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    text-align: right;
+    direction: rtl;
+}
+
+.base-editor-container:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-10);
+}
+
+.base-editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 6px;
+    background: var(--color-gray-light);
+    border-bottom: 1px solid var(--color-border);
+    gap: 2px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+
+.base-editor-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.base-editor-btn:hover {
+    background: var(--color-secondary);
+    color: var(--color-text-header);
+}
+
+.base-editor-btn.active {
+    background: var(--color-border);
+    color: var(--color-primary);
+    border-color: var(--color-primary-20);
+}
+
+.base-editor-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+.base-editor-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border);
+    margin: 0 6px;
+}
+
+.base-editor-content {
+    padding: 16px;
+    min-height: 120px;
+    outline: none;
+    line-height: 1.8;
+    color: var(--color-text-dark);
+    overflow-y: auto;
+    font-size: 0.95rem;
+    position: relative;
+}
+
+.base-editor-content:empty::before {
+    content: attr(placeholder);
+    position: absolute;
+    color: var(--color-text-dim);
+    pointer-events: none;
+    display: block; /* For empty state */
+}
+
+/* Base styles for contenteditable area */
+.base-editor-content p {
+    margin-bottom: 12px;
+    min-height: 1.2em; /* Ensure empty paragraphs are clickable */
+}
+
+.base-editor-content blockquote {
+    border-right: 4px solid var(--color-primary);
+    padding: 8px 16px;
+    margin: 16px 0;
+    background: var(--color-primary-light);
+    color: var(--color-text);
+    border-radius: 4px 0 0 4px;
+}
+
+.base-editor-content ul,
+.base-editor-content ol {
+    padding-right: 28px;
+    margin-bottom: 16px;
+}
+
+.base-editor-content li {
+    margin-bottom: 4px;
+}
+
+.base-editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--color-gray-light);
+    border-top: 1px solid var(--color-border);
+    font-size: 0.75rem;
+    color: var(--color-text-dim);
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+.base-editor-char-counter.limit-near {
+    color: var(--color-orange);
+}
+
+.base-editor-char-counter.limit-exceeded {
+    color: var(--color-error-alt);
+    font-weight: bold;
+}
+
+.base-editor-preview {
+    display: none;
+    padding: 16px;
+    min-height: 120px;
+    background: var(--color-white);
+    line-height: 1.8;
+    color: var(--color-text-dark);
+    overflow-y: auto;
+}
+
+.base-editor-container.preview-mode .base-editor-content {
+    display: none;
+}
+
+.base-editor-container.preview-mode .base-editor-preview {
+    display: block;
+}
+
+.base-editor-container.preview-mode .base-editor-toolbar .base-editor-btn:not(.preview-toggle) {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.base-editor-container.disabled {
+    background: var(--color-secondary);
+}
+
+.base-editor-container.disabled .base-editor-content {
+    cursor: not-allowed;
+    color: var(--color-text-dim);
+}
+
+/* Tooltip (optional, simple CSS implementation) */
+.base-editor-btn[data-title]:hover::after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text-header);
+    color: var(--color-white);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    margin-bottom: 5px;
+    z-index: 10;
+}
