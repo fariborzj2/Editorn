@@ -99,10 +99,10 @@ export class HistoryManager {
 
   handleKeydown(e) {
     if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'z') {
+        if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
             e.preventDefault();
             this.undo();
-        } else if (e.key === 'y' || (e.shiftKey && e.key === 'z')) {
+        } else if (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z')) {
             e.preventDefault();
             this.redo();
         }
