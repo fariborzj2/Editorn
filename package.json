@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fariborzj2/Editorn.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/fariborzj2/Editorn/issues"
+  },
+  "homepage": "https://github.com/fariborzj2/Editorn#readme",
+  "devDependencies": {
+    "vite": "^8.0.7"
+  },
+  "dependencies": {
+    "dompurify": "^3.3.3"
+  }
+}
