@@ -32,6 +32,8 @@ class BaseEditor {
             this.config.autosaveKey = `editor-draft-${this.el.id}`;
         }
 
+        this.heightKey = `editor-height-${this.el.id || 'default'}`;
+
         this.state = {
             isDisabled: false,
             isPreviewMode: false
@@ -48,6 +50,12 @@ class BaseEditor {
         // Hide original element (usually a textarea)
         this.el.style.display = 'none';
         this.el.parentNode.insertBefore(this.container, this.el.nextSibling);
+
+        // Restore saved height
+        const savedHeight = localStorage.getItem(this.heightKey);
+        if (savedHeight) {
+            this.container.style.height = savedHeight;
+        }
 
         this.renderToolbar();
         this.renderContentArea();
@@ -72,6 +80,20 @@ class BaseEditor {
 
         // Ensure initial structure is paragraph-based
         this.ensureParagraphStructure();
+
+        // Observe height changes for persistence
+        this.resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                if (entry.target === this.container) {
+                    const newHeight = entry.contentRect.height + 'px';
+                    // Check inline style to see if user manually resized
+                    if (this.container.style.height) {
+                        localStorage.setItem(this.heightKey, this.container.style.height);
+                    }
+                }
+            }
+        });
+        this.resizeObserver.observe(this.container);
 
         // Initialize icons if lucide is available
         if (window.lucide) {
@@ -548,6 +570,9 @@ class BaseEditor {
     destroy() {
         if (this.el.form && this._handleFormReset) {
             this.el.form.removeEventListener('reset', this._handleFormReset);
+        }
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
         }
         this.container.remove();
         this.el.style.display = '';
