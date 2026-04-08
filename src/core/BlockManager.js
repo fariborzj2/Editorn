@@ -1,12 +1,20 @@
 import { IdGenerator } from '../utils/IdGenerator.js';
 import { Paragraph } from '../blocks/Paragraph.js';
+import { Header } from '../blocks/Header.js';
+import { List } from '../blocks/List.js';
+import { Quote } from '../blocks/Quote.js';
+import { Divider } from '../blocks/Divider.js';
 
 export class BlockManager {
   constructor(editor) {
     this.editor = editor;
     this.blocks = [];
     this.blockClasses = {
-      paragraph: Paragraph
+      paragraph: Paragraph,
+      header: Header,
+      list: List,
+      quote: Quote,
+      divider: Divider
     };
   }
 
