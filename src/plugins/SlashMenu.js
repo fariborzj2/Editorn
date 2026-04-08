@@ -5,6 +5,7 @@ export class SlashMenu {
     this.menu = null;
     this.isOpen = false;
     this.activeBlockIndex = -1;
+    this.selectedIndex = 0;
 
     this.init();
   }
@@ -25,6 +26,8 @@ export class SlashMenu {
     this.menu.style.zIndex = '100';
     this.menu.style.padding = '5px 0';
     this.menu.style.borderRadius = '4px';
+    this.menu.style.maxHeight = '250px';
+    this.menu.style.overflowY = 'auto';
 
     const items = [
       { label: 'Paragraph', type: 'paragraph' },
@@ -37,7 +40,7 @@ export class SlashMenu {
       { label: 'Divider', type: 'divider' }
     ];
 
-    items.forEach(item => {
+    items.forEach((item, index) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.innerText = item.label;
@@ -49,8 +52,9 @@ export class SlashMenu {
       btn.style.padding = '8px 15px';
       btn.style.cursor = 'pointer';
 
-      btn.addEventListener('mouseover', () => btn.style.backgroundColor = '#f0f0f0');
-      btn.addEventListener('mouseout', () => btn.style.backgroundColor = 'transparent');
+      btn.addEventListener('mouseover', () => {
+          this.setSelectedIndex(index);
+      });
 
       btn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -61,6 +65,18 @@ export class SlashMenu {
     });
 
     document.body.appendChild(this.menu);
+  }
+
+  setSelectedIndex(index) {
+    const items = this.menu.querySelectorAll('button');
+    if (this.selectedIndex >= 0 && this.selectedIndex < items.length) {
+      items[this.selectedIndex].style.backgroundColor = 'transparent';
+    }
+    this.selectedIndex = index;
+    if (this.selectedIndex >= 0 && this.selectedIndex < items.length) {
+      items[this.selectedIndex].style.backgroundColor = '#f0f0f0';
+      items[this.selectedIndex].scrollIntoView({ block: 'nearest' });
+    }
   }
 
   handleInput(e) {
@@ -94,10 +110,22 @@ export class SlashMenu {
     if (!this.isOpen) return;
 
     if (e.key === 'Escape') {
+      e.preventDefault();
       this.close();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const items = this.menu.querySelectorAll('button');
+      this.setSelectedIndex((this.selectedIndex + 1) % items.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const items = this.menu.querySelectorAll('button');
+      this.setSelectedIndex((this.selectedIndex - 1 + items.length) % items.length);
     } else if (e.key === 'Enter') {
-        // Prevent default enter behavior when menu is open
-        // Will implement full keyboard navigation later
+      e.preventDefault();
+      const items = this.menu.querySelectorAll('button');
+      if (this.selectedIndex >= 0 && this.selectedIndex < items.length) {
+          items[this.selectedIndex].click();
+      }
     }
   }
 
@@ -112,6 +140,7 @@ export class SlashMenu {
     this.menu.style.display = 'block';
     this.isOpen = true;
     this.activeBlockIndex = blockIndex;
+    this.setSelectedIndex(0);
   }
 
   close() {
