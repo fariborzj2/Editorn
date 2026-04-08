@@ -139,8 +139,16 @@ export class FixedToolbar {
                    content = currentBlockEl.innerHTML;
                 }
 
+                // Construct appropriate data object based on block type
+                let newData = {};
+                if (type === 'list') {
+                    newData = { style: 'unordered', items: [content] };
+                } else {
+                    newData = { text: content };
+                }
+
                 this.api.blockManager.removeBlock(blockIndex);
-                this.api.blockManager.insertBlock(type, { text: content }, blockIndex);
+                this.api.blockManager.insertBlock(type, newData, blockIndex);
                 this.api.renderer.renderBlocks(this.api.blockManager.getBlocks());
             }
         } else {
