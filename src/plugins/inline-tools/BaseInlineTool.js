@@ -80,11 +80,6 @@ export class BaseInlineTool {
     const range = selection.getRangeAt(0);
     if (range.collapsed) return;
 
-    const extractedContent = range.extractContents();
-
-    // Check if we are unwrapping or wrapping. Simplistic approach for boilerplate.
-    // In a robust implementation, this needs to handle complex nested nodes.
-
     // Check if the current selection parent already has the tag
     let element = range.commonAncestorContainer;
     element = element.nodeType === Node.ELEMENT_NODE ? element : element.parentElement;
@@ -99,15 +94,45 @@ export class BaseInlineTool {
     }
 
     if (unwrappingNode) {
-       // Unwrap: Extract contents of the unwrapping node and place them before it, then remove the node.
-       // This is a simplified unwrap that assumes we unwrap the whole parent node.
-       const textNode = document.createTextNode(unwrappingNode.textContent);
-       unwrappingNode.parentNode.replaceChild(textNode, unwrappingNode);
+       // Unwrap: simply replace the unwrappingNode with its children.
+       // We don't extract contents because that corrupts partial selections.
+       const parent = unwrappingNode.parentNode;
+
+       const firstChild = unwrappingNode.firstChild;
+       const lastChild = unwrappingNode.lastChild;
+
+       while (unwrappingNode.firstChild) {
+           parent.insertBefore(unwrappingNode.firstChild, unwrappingNode);
+       }
+       parent.removeChild(unwrappingNode);
+
+       // Restore selection
+       if (firstChild && lastChild) {
+           const newSelection = window.getSelection();
+           newSelection.removeAllRanges();
+           const newRange = document.createRange();
+           newRange.setStartBefore(firstChild);
+           newRange.setEndAfter(lastChild);
+           newSelection.addRange(newRange);
+       }
     } else {
-       // Wrap
+       // Wrap: Extract contents and wrap them.
+       const extractedContent = range.extractContents();
        const wrapper = this.createWrapper();
        wrapper.appendChild(extractedContent);
        range.insertNode(wrapper);
+
+       // Clean up empty wrappers
+       if (wrapper.innerHTML === '') {
+           wrapper.remove();
+       } else {
+           // Restore selection to wrapped content
+           const newSelection = window.getSelection();
+           newSelection.removeAllRanges();
+           const newRange = document.createRange();
+           newRange.selectNodeContents(wrapper);
+           newSelection.addRange(newRange);
+       }
     }
 
     this.api.triggerChange();
