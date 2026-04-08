@@ -108,12 +108,13 @@
 
     // Initialize Phase 7 Fixed Toolbar
     editor.pluginManager.register('fixedToolbar', window.EditornPlugins.FixedToolbar, {
-      inlineTools: [
+      tools: [
         window.EditornPlugins.BoldTool,
         window.EditornPlugins.ItalicTool,
         window.EditornPlugins.UnderlineTool,
         window.EditornPlugins.LinkTool
-      ]
+      ],
+      blocks: ['paragraph', 'header', 'list', 'quote', 'divider', 'image', 'embed', 'table', 'code']
     });
 
     // Initialize Phase 3 Plugins
