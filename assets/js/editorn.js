@@ -27,6 +27,11 @@ class BaseEditor {
             return;
         }
 
+        // Generate dynamic autosave key if using default and we have an id
+        if (this.config.autosave && this.config.autosaveKey === 'editor-draft' && this.el.id) {
+            this.config.autosaveKey = `editor-draft-${this.el.id}`;
+        }
+
         this.state = {
             isDisabled: false,
             isPreviewMode: false
@@ -157,7 +162,16 @@ class BaseEditor {
         this.editor = document.createElement('div');
         this.editor.className = 'base-editor-content';
         this.editor.contentEditable = true;
-        this.editor.setAttribute('placeholder', this.config.placeholder);
+        this.editor.setAttribute('role', 'textbox');
+        this.editor.setAttribute('aria-multiline', 'true');
+
+        const labelText = this.config.placeholder || 'ویرایشگر متن';
+        this.editor.setAttribute('aria-label', labelText);
+
+        if (this.config.placeholder) {
+            this.editor.setAttribute('placeholder', this.config.placeholder);
+        }
+
         this.editor.setAttribute('spellcheck', 'false');
 
         this.previewArea = document.createElement('div');
@@ -200,6 +214,16 @@ class BaseEditor {
             e.preventDefault();
             return false;
         };
+
+        // Form reset integration
+        if (this.el.form) {
+            this._handleFormReset = () => {
+                setTimeout(() => {
+                    this.clear();
+                }, 0);
+            };
+            this.el.form.addEventListener('reset', this._handleFormReset);
+        }
     }
 
     handleInput() {
@@ -214,9 +238,39 @@ class BaseEditor {
         }
     }
 
+    saveSelection() {
+        if (!window.getSelection) return null;
+        const sel = window.getSelection();
+        if (sel.getRangeAt && sel.rangeCount) {
+            return sel.getRangeAt(0);
+        }
+        return null;
+    }
+
+    restoreSelection(range) {
+        if (range && window.getSelection) {
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    }
+
     ensureParagraphStructure() {
+        const selection = this.saveSelection();
+
         if (!this.editor.innerHTML.trim() || this.editor.innerHTML === '<br>') {
             this.editor.innerHTML = '<p><br></p>';
+
+            // Re-establish cursor in the new empty paragraph
+            if (selection) {
+                const p = this.editor.querySelector('p');
+                if (p) {
+                    const range = document.createRange();
+                    range.setStart(p, 0);
+                    range.collapse(true);
+                    this.restoreSelection(range);
+                }
+            }
             return;
         }
 
@@ -319,6 +373,13 @@ class BaseEditor {
 
         if (changed) {
             this.updateActiveState();
+            if (selection && this.editor.contains(selection.commonAncestorContainer)) {
+                try {
+                    this.restoreSelection(selection);
+                } catch(e) {
+                    // Ignore restore errors if nodes were removed
+                }
+            }
         }
     }
 
@@ -485,6 +546,9 @@ class BaseEditor {
     }
 
     destroy() {
+        if (this.el.form && this._handleFormReset) {
+            this.el.form.removeEventListener('reset', this._handleFormReset);
+        }
         this.container.remove();
         this.el.style.display = '';
     }
@@ -527,9 +591,10 @@ class BaseEditor {
     sanitize(html) {
         if (!html) return '';
 
-        // Use a temporary div for DOM-based sanitization
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
+        // Use DOMParser to prevent executing scripts during sanitization
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const temp = doc.body;
 
         const allowedTags = ['p', 'strong', 'em', 'b', 'i', 'blockquote', 'ul', 'ol', 'li', 'br'];
 
