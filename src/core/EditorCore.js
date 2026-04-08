@@ -2,6 +2,8 @@ import { BlockManager } from './BlockManager.js';
 import { Renderer } from './Renderer.js';
 import { PluginManager } from './PluginManager.js';
 import { PasteManager } from './PasteManager.js';
+import { HistoryManager } from './HistoryManager.js';
+import { DragDropManager } from './DragDropManager.js';
 
 export class EditorCore {
   constructor(config) {
@@ -31,6 +33,8 @@ export class EditorCore {
     this.blockManager = new BlockManager(this);
     this.pluginManager = new PluginManager(this);
     this.pasteManager = new PasteManager(this);
+    this.historyManager = new HistoryManager(this);
+    this.dragDropManager = new DragDropManager(this);
 
     this.renderInitialData();
 
