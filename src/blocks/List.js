@@ -43,6 +43,23 @@ export class List {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       e.stopPropagation();
+
+      // If pressing Enter on an empty list item, break out of the list
+      if (li.innerHTML === '<br>' || li.innerHTML.trim() === '') {
+          li.remove();
+
+          // Use core API to insert a new paragraph
+          const currentBlockIndex = this.api.findActiveBlockIndex();
+          const newBlock = this.api.blockManager.insertBlock('paragraph', {}, currentBlockIndex + 1);
+          this.api.renderer.renderBlocks(this.api.blockManager.getBlocks());
+
+          if (newBlock && newBlock.element) {
+             newBlock.element.focus();
+          }
+          this.api.triggerChange();
+          return;
+      }
+
       const newLi = document.createElement('li');
       newLi.contentEditable = true;
       newLi.innerHTML = '<br>';
@@ -53,7 +70,7 @@ export class List {
       newLi.addEventListener('keydown', (e2) => this.handleKeydown(e2, newLi));
       this.wrapper.insertBefore(newLi, li.nextSibling);
       newLi.focus();
-    } else if (e.key === 'Backspace' && li.innerHTML === '<br>' && this.wrapper.children.length > 1) {
+    } else if (e.key === 'Backspace' && (li.innerHTML === '<br>' || li.innerHTML.trim() === '') && this.wrapper.children.length > 1) {
       e.preventDefault();
       e.stopPropagation();
       const prevLi = li.previousElementSibling;
