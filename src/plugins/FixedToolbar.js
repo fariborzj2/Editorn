@@ -129,16 +129,24 @@ export class FixedToolbar {
 
         if (currentBlockEl) {
             const blockId = currentBlockEl.dataset.id;
-            // Get content from current block if any
-            let content = '';
-            if (currentBlockEl.textContent.trim().length > 0) {
-               content = currentBlockEl.innerHTML;
-            }
+            const blocks = this.api.blockManager.getBlocks();
+            const blockIndex = blocks.findIndex(b => b.id === blockId);
 
-            this.api.blockManager.replaceBlock(blockId, type, { text: content });
+            if (blockIndex !== -1) {
+                // Get content from current block if any
+                let content = '';
+                if (currentBlockEl.textContent.trim().length > 0) {
+                   content = currentBlockEl.innerHTML;
+                }
+
+                this.api.blockManager.removeBlock(blockIndex);
+                this.api.blockManager.insertBlock(type, { text: content }, blockIndex);
+                this.api.renderer.renderBlocks(this.api.blockManager.getBlocks());
+            }
         } else {
             // Append a new block
-            this.api.blockManager.addBlock(type);
+            this.api.blockManager.insertBlock(type);
+            this.api.renderer.renderBlocks(this.api.blockManager.getBlocks());
         }
     }
 
