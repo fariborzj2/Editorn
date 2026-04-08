@@ -6,14 +6,28 @@ import { ItalicTool } from './plugins/inline-tools/ItalicTool.js';
 import { UnderlineTool } from './plugins/inline-tools/UnderlineTool.js';
 import { LinkTool } from './plugins/inline-tools/LinkTool.js';
 
-// Export the core and tools for global usage (e.g., in a browser environment)
+// Phase 3 Blocks & Plugins
+import { Header } from './blocks/Header.js';
+import { List } from './blocks/List.js';
+import { Quote } from './blocks/Quote.js';
+import { Divider } from './blocks/Divider.js';
+import { SlashMenu } from './plugins/SlashMenu.js';
+
+// Export the core and tools for global usage
 window.Editorn = EditorCore;
 window.EditornPlugins = {
     InlineToolbar,
     BoldTool,
     ItalicTool,
     UnderlineTool,
-    LinkTool
+    LinkTool,
+    SlashMenu
+};
+window.EditornBlocks = {
+    Header,
+    List,
+    Quote,
+    Divider
 };
 
 export default EditorCore;

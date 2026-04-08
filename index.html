@@ -43,6 +43,32 @@
       border-radius: 8px;
       overflow-x: auto;
     }
+    .editorn-block-header {
+      margin: 1em 0 0.5em;
+      font-weight: bold;
+    }
+    .editorn-block-list {
+      padding-inline-start: 40px;
+    }
+    .editorn-block-list li {
+      margin-bottom: 0.5em;
+    }
+    .editorn-block-quote {
+      border-inline-start: 4px solid #ccc;
+      padding-inline-start: 1em;
+      margin: 1em 0;
+      color: #666;
+    }
+    .editorn-quote-caption {
+      font-size: 0.8em;
+      color: #999;
+      margin-top: 0.5em;
+    }
+    .editorn-block-divider hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 2em 0;
+    }
   </style>
   <link rel="stylesheet" href="./src/plugins/inline-tools/inline-toolbar.css">
 </head>
@@ -79,6 +105,9 @@
         window.EditornPlugins.LinkTool
       ]
     });
+
+    // Initialize Phase 3 Plugins
+    editor.pluginManager.register('slashMenu', window.EditornPlugins.SlashMenu, {});
 
     document.getElementById('save-btn').addEventListener('click', () => {
       const data = editor.save();
