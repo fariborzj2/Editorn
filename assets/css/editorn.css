@@ -27,13 +27,21 @@
     border: 1px solid var(--color-border);
     border-radius: 8px;
     background: var(--color-white);
-    /* overflow: hidden; */
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     transition: border-color 0.2s, box-shadow 0.2s;
     font-family: inherit;
     text-align: right;
     direction: rtl;
+    min-height: 300px;
+    resize: vertical;
+}
+
+@media (max-width: 768px) {
+    .base-editor-container {
+        resize: none;
+    }
 }
 
 .base-editor-container:focus-within {
@@ -51,6 +59,7 @@
     gap: 2px;
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
+    flex-shrink: 0;
 }
 
 .base-editor-btn {
@@ -93,13 +102,15 @@
 
 .base-editor-content {
     padding: 16px;
-    min-height: 120px;
+    flex: 1;
     outline: none;
     line-height: 1.8;
     color: var(--color-text-dark);
     overflow-y: auto;
     font-size: 0.95rem;
     position: relative;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .base-editor-content:empty::before {
@@ -146,6 +157,7 @@
     color: var(--color-text-dim);
     border-bottom-left-radius: 7px;
     border-bottom-right-radius: 7px;
+    flex-shrink: 0;
 }
 
 .base-editor-char-counter.limit-near {
@@ -160,11 +172,13 @@
 .base-editor-preview {
     display: none;
     padding: 16px;
-    min-height: 120px;
+    flex: 1;
     background: var(--color-white);
     line-height: 1.8;
     color: var(--color-text-dark);
     overflow-y: auto;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .base-editor-container.preview-mode .base-editor-content {
