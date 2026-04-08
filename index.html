@@ -44,6 +44,7 @@
       overflow-x: auto;
     }
   </style>
+  <link rel="stylesheet" href="./src/plugins/inline-tools/inline-toolbar.css">
 </head>
 <body>
   <h1>Editorn v2 (Block-Based)</h1>
@@ -67,6 +68,16 @@
       onChange: (data) => {
         console.log('Content changed:', data);
       }
+    });
+
+    // Initialize Phase 2 Plugins
+    editor.pluginManager.register('inlineToolbar', window.EditornPlugins.InlineToolbar, {
+      tools: [
+        window.EditornPlugins.BoldTool,
+        window.EditornPlugins.ItalicTool,
+        window.EditornPlugins.UnderlineTool,
+        window.EditornPlugins.LinkTool
+      ]
     });
 
     document.getElementById('save-btn').addEventListener('click', () => {
