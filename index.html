@@ -106,6 +106,16 @@
       ]
     });
 
+    // Initialize Phase 7 Fixed Toolbar
+    editor.pluginManager.register('fixedToolbar', window.EditornPlugins.FixedToolbar, {
+      inlineTools: [
+        window.EditornPlugins.BoldTool,
+        window.EditornPlugins.ItalicTool,
+        window.EditornPlugins.UnderlineTool,
+        window.EditornPlugins.LinkTool
+      ]
+    });
+
     // Initialize Phase 3 Plugins
     editor.pluginManager.register('slashMenu', window.EditornPlugins.SlashMenu, {});
 

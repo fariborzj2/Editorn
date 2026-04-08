@@ -21,10 +21,14 @@ import { Embed } from './blocks/Embed.js';
 import { Table } from './blocks/Table.js';
 import { Code } from './blocks/Code.js';
 
+// Phase 7 Fixed Toolbar
+import { FixedToolbar } from './plugins/FixedToolbar.js';
+
 // Export the core and tools for global usage
 window.Editorn = EditorCore;
 window.EditornPlugins = {
     InlineToolbar,
+    FixedToolbar,
     BoldTool,
     ItalicTool,
     UnderlineTool,

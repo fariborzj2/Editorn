@@ -119,13 +119,33 @@ class MyCustomBlock {
   - **`Table`**: امکان ایجاد جداول با رابط کاربری داخلی جهت افزودن و حذف سطر و ستون و استفاده از `Sanitizer` برای جلوگیری از XSS در سلول‌ها.
   - **`Code`**: امکان درج قطعه کدهای خام با پشتیبانی از کلید `Tab` برای ایجاد فاصله به جای پرش فیلد.
 
-## ۸. استایل‌ها و تم (Styles & Theming)
+## ۸. فاز ۷: نوار ابزار ثابت (Fixed Toolbar)
+
+در فاز ۷، یک نوار ابزار ثابت (`FixedToolbar`) به ویرایشگر اضافه شده است که در بالای `container` ویرایشگر قرار می‌گیرد.
+این نوار ابزار شامل دکمه‌هایی برای فرمتینگ درون‌خطی (Bold, Italic, و غیره) و همچنین دکمه‌هایی برای درج و تبدیل بلوک‌ها (Paragraph, Header, List و غیره) است.
+
+### استفاده از FixedToolbar
+
+پلاگین `FixedToolbar` در زمان ثبت در `PluginManager` می‌تواند تنظیماتی برای لیست ابزارهای درون‌خطی دریافت کند. برای ثبت آن در `EditorCore`:
+
+```javascript
+editor.pluginManager.register('fixedToolbar', EditornPlugins.FixedToolbar, {
+  inlineTools: [
+    EditornPlugins.BoldTool,
+    EditornPlugins.ItalicTool,
+    EditornPlugins.UnderlineTool,
+    EditornPlugins.LinkTool
+  ]
+});
+```
+
+## ۹. استایل‌ها و تم (Styles & Theming)
 
 - برای استایل‌دهی، از نام‌گذاری BEM (Block Element Modifier) استفاده کنید.
 - وابستگی به فایل‌های CSS خارجی را به حداقل برسانید؛ در صورت امکان، ساختار هسته باید Minimal باشد تا توسعه‌دهندگان بتوانند تم اختصاصی خود را اعمال کنند.
 - از متغیرهای CSS (CSS Variables) برای رنگ‌ها و اندازه‌های پایه استفاده کنید تا قابلیت تغییر تم (Light/Dark) آسان باشد.
 
-## ۹. دستورالعمل‌های تست و توسعه محلی (Local Development)
+## ۱۰. دستورالعمل‌های تست و توسعه محلی (Local Development)
 
 این پروژه از ابزار **Vite** برای بیلد و از **Vitest** برای تست‌ها استفاده می‌کند.
 
@@ -148,7 +168,7 @@ npm test
 npm run build
 ```
 
-## ۱۰. آداپتورهای فریم‌ورک (Framework Adapters)
+## ۱۱. آداپتورهای فریم‌ورک (Framework Adapters)
 
 در طول فاز ۶، آداپتورهای مخصوص React و Vue برای سهولت در استفاده از ادیتور توسعه داده شده‌اند که در پوشه `src/adapters/` در دسترس هستند.
 
