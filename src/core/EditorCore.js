@@ -177,6 +177,9 @@ export class EditorCore {
   }
 
   triggerChange() {
+    if (this.historyManager) {
+        this.historyManager.record();
+    }
     if (this.config.onChange) {
       this.config.onChange(this.save());
     }
