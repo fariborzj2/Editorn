@@ -13,6 +13,10 @@ import { Quote } from './blocks/Quote.js';
 import { Divider } from './blocks/Divider.js';
 import { SlashMenu } from './plugins/SlashMenu.js';
 
+// Phase 4 Blocks
+import { Image } from './blocks/Image.js';
+import { Embed } from './blocks/Embed.js';
+
 // Export the core and tools for global usage
 window.Editorn = EditorCore;
 window.EditornPlugins = {
@@ -27,7 +31,9 @@ window.EditornBlocks = {
     Header,
     List,
     Quote,
-    Divider
+    Divider,
+    Image,
+    Embed
 };
 
 export default EditorCore;
