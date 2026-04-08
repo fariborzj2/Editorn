@@ -147,3 +147,53 @@ npm test
 ```bash
 npm run build
 ```
+
+## ۱۰. آداپتورهای فریم‌ورک (Framework Adapters)
+
+در طول فاز ۶، آداپتورهای مخصوص React و Vue برای سهولت در استفاده از ادیتور توسعه داده شده‌اند که در پوشه `src/adapters/` در دسترس هستند.
+
+### استفاده در React:
+```jsx
+import React, { useState } from 'react';
+import EditornReact from './path/to/src/adapters/react/EditornReact';
+
+const MyEditorComponent = () => {
+  const [data, setData] = useState({ blocks: [] });
+
+  const handleEditorChange = (newData) => {
+    setData(newData);
+  };
+
+  return (
+    <EditornReact
+      data={data}
+      onChange={handleEditorChange}
+      plugins={[/* ... لیست پلاگین‌ها ... */]}
+      config={{ /* ... سایر تنظیمات Editorn ... */ }}
+    />
+  );
+};
+```
+
+### استفاده در Vue:
+```vue
+<template>
+  <EditornVue
+    :data="editorData"
+    :plugins="editorPlugins"
+    @change="handleEditorChange"
+  />
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import EditornVue from './path/to/src/adapters/vue/EditornVue';
+
+const editorData = ref({ blocks: [] });
+const editorPlugins = ref([/* ... لیست پلاگین‌ها ... */]);
+
+const handleEditorChange = (newData) => {
+  editorData.value = newData;
+};
+</script>
+```
