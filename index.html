@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editorn - Modern Block-Based Editor Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f9;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #editor-container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .editorn-container {
+      min-height: 200px;
+    }
+    .editorn-block-paragraph {
+      margin-bottom: 1em;
+      outline: none;
+      min-height: 1.5em;
+    }
+    .editorn-block-paragraph[placeholder]:empty:before {
+      content: attr(placeholder);
+      color: #aaa;
+    }
+    #output-container {
+      width: 100%;
+      max-width: 800px;
+      background: #222;
+      color: #0f0;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Editorn v2 (Block-Based)</h1>
+  <div id="editor-container"></div>
+  <button id="save-btn" style="margin-bottom: 20px; padding: 10px 20px; cursor: pointer;">Save Output</button>
+  <pre id="output-container" dir="ltr" style="text-align: left;">{}</pre>
+
+  <script type="module">
+    import Editorn from './src/index.js';
+
+    const editor = new Editorn({
+      el: '#editor-container',
+      data: {
+        blocks: [
+          {
+            type: 'paragraph',
+            data: { text: 'سلام! این ویرایشگر جدید مبتنی بر بلوک است.' }
+          }
+        ]
+      },
+      onChange: (data) => {
+        console.log('Content changed:', data);
+      }
+    });
+
+    document.getElementById('save-btn').addEventListener('click', () => {
+      const data = editor.save();
+      document.getElementById('output-container').textContent = JSON.stringify(data, null, 2);
+    });
+  </script>
+</body>
+</html>
