@@ -17,6 +17,10 @@ import { SlashMenu } from './plugins/SlashMenu.js';
 import { Image } from './blocks/Image.js';
 import { Embed } from './blocks/Embed.js';
 
+// Phase 5 Blocks
+import { Table } from './blocks/Table.js';
+import { Code } from './blocks/Code.js';
+
 // Export the core and tools for global usage
 window.Editorn = EditorCore;
 window.EditornPlugins = {
@@ -33,7 +37,9 @@ window.EditornBlocks = {
     Quote,
     Divider,
     Image,
-    Embed
+    Embed,
+    Table,
+    Code
 };
 
 export default EditorCore;
