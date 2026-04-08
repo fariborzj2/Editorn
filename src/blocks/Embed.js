@@ -36,8 +36,23 @@ export class Embed {
     return this.wrapper;
   }
 
+  parseUrl(url) {
+    // YouTube
+    const ytMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      return { service: 'youtube', embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}` };
+    }
+
+    // Aparat
+    const aparatMatch = url.match(/(?:https?:\/\/)?(?:www\.)?aparat\.com\/v\/([a-zA-Z0-9]+)/);
+    if (aparatMatch && aparatMatch[1]) {
+      return { service: 'aparat', embedUrl: `https://www.aparat.com/video/video/embed/videohash/${aparatMatch[1]}/vt/frame` };
+    }
+
+    return null;
+  }
+
   renderEmbed() {
-      // TODO: Phase 4 - Real implementation should parse the URL and map it to a specific service template (e.g. YouTube, Aparat)
       this.iframeEl = document.createElement('iframe');
       this.iframeEl.src = this.data.url;
       this.iframeEl.width = '100%';
@@ -49,29 +64,44 @@ export class Embed {
   }
 
   renderInput() {
-      // TODO: Phase 4 - Add proper UI for URL input
       const inputUI = document.createElement('div');
       inputUI.classList.add('editorn-embed-input');
 
       const inputEl = document.createElement('input');
       inputEl.type = 'url';
-      inputEl.placeholder = 'Enter embed URL (e.g. YouTube)';
+      inputEl.placeholder = 'Enter video URL (YouTube, Aparat...) and press Enter';
       inputEl.style.width = '100%';
       inputEl.style.padding = '10px';
+      inputEl.style.border = '1px solid #ccc';
+      inputEl.style.borderRadius = '4px';
+
+      const errorEl = document.createElement('div');
+      errorEl.style.color = 'red';
+      errorEl.style.fontSize = '0.8em';
+      errorEl.style.marginTop = '5px';
+      errorEl.style.display = 'none';
 
       inputEl.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
               e.preventDefault();
               if (inputEl.value) {
-                  this.data.url = inputEl.value; // TODO: parse to get embeddable URL
-                  this.wrapper.removeChild(inputUI);
-                  this.renderEmbed();
-                  this.api.triggerChange();
+                  const parsed = this.parseUrl(inputEl.value);
+                  if (parsed) {
+                      this.data.url = parsed.embedUrl;
+                      this.data.service = parsed.service;
+                      this.wrapper.removeChild(inputUI);
+                      this.renderEmbed();
+                      this.api.triggerChange();
+                  } else {
+                      errorEl.textContent = 'Invalid or unsupported URL. Please use YouTube or Aparat.';
+                      errorEl.style.display = 'block';
+                  }
               }
           }
       });
 
       inputUI.appendChild(inputEl);
+      inputUI.appendChild(errorEl);
       this.wrapper.insertBefore(inputUI, this.captionEl);
   }
 
