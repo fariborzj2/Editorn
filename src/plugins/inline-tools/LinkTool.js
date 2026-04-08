@@ -48,8 +48,25 @@ export class LinkTool extends BaseInlineTool {
 
     if (unwrappingNode) {
        // Unwrap (remove link)
-       const textNode = document.createTextNode(unwrappingNode.textContent);
-       unwrappingNode.parentNode.replaceChild(textNode, unwrappingNode);
+       const parent = unwrappingNode.parentNode;
+
+       const firstChild = unwrappingNode.firstChild;
+       const lastChild = unwrappingNode.lastChild;
+
+       while (unwrappingNode.firstChild) {
+           parent.insertBefore(unwrappingNode.firstChild, unwrappingNode);
+       }
+       parent.removeChild(unwrappingNode);
+
+       if (firstChild && lastChild) {
+           const newSelection = window.getSelection();
+           newSelection.removeAllRanges();
+           const newRange = document.createRange();
+           newRange.setStartBefore(firstChild);
+           newRange.setEndAfter(lastChild);
+           newSelection.addRange(newRange);
+       }
+
        this.api.triggerChange();
        this.checkState(window.getSelection());
     } else {
@@ -60,6 +77,17 @@ export class LinkTool extends BaseInlineTool {
            const wrapper = this.createWrapper(url);
            wrapper.appendChild(extractedContent);
            range.insertNode(wrapper);
+
+           if (wrapper.innerHTML === '') {
+               wrapper.remove();
+           } else {
+               const newSelection = window.getSelection();
+               newSelection.removeAllRanges();
+               const newRange = document.createRange();
+               newRange.selectNodeContents(wrapper);
+               newSelection.addRange(newRange);
+           }
+
            this.api.triggerChange();
            this.checkState(window.getSelection());
        }
