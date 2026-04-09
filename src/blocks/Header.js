@@ -2,7 +2,10 @@ import { Sanitizer } from '../utils/Sanitizer.js';
 
 export class Header {
   constructor({ data, api }) {
-    this.data = data || { text: '', level: 2 };
+    this.data = {
+      text: data && data.text ? data.text : '',
+      level: data && data.level ? data.level : 2
+    };
     this.api = api;
     this.wrapper = undefined;
   }

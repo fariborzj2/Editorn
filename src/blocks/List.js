@@ -2,7 +2,10 @@ import { Sanitizer } from '../utils/Sanitizer.js';
 
 export class List {
   constructor({ data, api }) {
-    this.data = data || { style: 'unordered', items: [''] };
+    this.data = {
+      style: data && data.style ? data.style : 'unordered',
+      items: data && data.items ? data.items : ['']
+    };
     this.api = api;
     this.wrapper = undefined;
   }

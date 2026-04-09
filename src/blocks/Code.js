@@ -1,6 +1,9 @@
 export class Code {
   constructor({ data, api }) {
-    this.data = data || { code: '', language: 'javascript' };
+    this.data = {
+      code: data && data.code ? data.code : '',
+      language: data && data.language ? data.language : 'javascript'
+    };
     this.api = api;
     this.wrapper = undefined;
     this.textarea = undefined;
