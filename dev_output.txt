@@ -1,0 +1,11 @@
+
+> app@1.0.0 dev
+> vite
+
+Port 5173 is in use, trying another one...
+11:57:35 AM [vite] (client) Re-optimizing dependencies because lockfile has changed
+
+  VITE v8.0.8  ready in 557 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose
