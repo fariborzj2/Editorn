@@ -1,3 +1,4 @@
+import { I18n } from '../utils/I18n.js';
 import { DirectionManager } from '../utils/DirectionManager.js';
 import { BlockManager } from './BlockManager.js';
 import { Renderer } from './Renderer.js';
@@ -11,6 +12,7 @@ export class EditorCore {
     this.config = Object.assign({
       data: { blocks: [] },
       direction: 'auto',
+      lang: 'en',
       onChange: null
     }, config);
 
@@ -43,6 +45,7 @@ export class EditorCore {
     this.historyManager = new HistoryManager(this);
     this.dragDropManager = new DragDropManager(this);
     this.directionManager = new DirectionManager(this.config.direction);
+    this.i18n = new I18n(this.config.lang);
 
     // Initial data rendering is deferred until extensions are loaded.
     // It should be explicitly called.

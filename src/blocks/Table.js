@@ -65,21 +65,25 @@ export class Table {
       toolbar.style.display = 'flex';
       toolbar.style.gap = '5px';
 
+
+      const i18n = this.api.i18n || (this.api.api && this.api.api.i18n) || { t: (key, fallback) => fallback || key };
+
       const addRowBtn = document.createElement('button');
-      addRowBtn.textContent = 'Add Row';
+      addRowBtn.textContent = i18n.t('table.addRow', 'Add Row');
       addRowBtn.addEventListener('click', () => this.addRow());
 
       const addColBtn = document.createElement('button');
-      addColBtn.textContent = 'Add Column';
+      addColBtn.textContent = i18n.t('table.addColumn', 'Add Column');
       addColBtn.addEventListener('click', () => this.addColumn());
 
       const removeRowBtn = document.createElement('button');
-      removeRowBtn.textContent = 'Remove Row';
+      removeRowBtn.textContent = i18n.t('table.removeRow', 'Remove Row');
       removeRowBtn.addEventListener('click', () => this.removeRow());
 
       const removeColBtn = document.createElement('button');
-      removeColBtn.textContent = 'Remove Column';
+      removeColBtn.textContent = i18n.t('table.removeColumn', 'Remove Column');
       removeColBtn.addEventListener('click', () => this.removeColumn());
+
 
       toolbar.appendChild(addRowBtn);
       toolbar.appendChild(addColBtn);
