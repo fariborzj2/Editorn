@@ -38,57 +38,66 @@ export class InlineToolbar {
   }
 
   bindEvents() {
-    document.addEventListener('selectionchange', () => this.handleSelectionChange());
-    // Prevent hiding when clicking on toolbar
-    this.toolbarElement.addEventListener('mousedown', (e) => e.preventDefault());
+    this.boundHandleContextMenu = this.handleContextMenu.bind(this);
+    this.boundHandleDocumentClick = this.handleDocumentClick.bind(this);
+
+    this.api.container.addEventListener('contextmenu', this.boundHandleContextMenu);
+    document.addEventListener('click', this.boundHandleDocumentClick);
+
+    // Prevent hiding when clicking on toolbar itself
+    this.toolbarElement.addEventListener('mousedown', (e) => {
+        // Only prevent default if it's not a right click inside the toolbar
+        if (e.button !== 2) {
+            e.preventDefault();
+        }
+    });
   }
 
-  handleSelectionChange() {
+  handleContextMenu(e) {
+    e.preventDefault();
+
     const selection = window.getSelection();
 
-    if (!selection.rangeCount || selection.isCollapsed) {
-      this.hide();
-      return;
+    // We update tools state even if there's no selection (for block-level tools if any, or just to sync state)
+    if (selection.rangeCount > 0) {
+        this.updateToolsState(selection);
     }
 
-    const range = selection.getRangeAt(0);
-    const commonAncestor = range.commonAncestorContainer;
-
-    // Check if selection is within the editor
-    let element = commonAncestor.nodeType === Node.ELEMENT_NODE ? commonAncestor : commonAncestor.parentElement;
-    let isInsideEditor = false;
-
-    while (element) {
-        if (element === this.api.container) {
-            isInsideEditor = true;
-            break;
-        }
-        element = element.parentElement;
-    }
-
-    if (!isInsideEditor) {
-        this.hide();
-        return;
-    }
-
-    const rect = range.getBoundingClientRect();
-    this.show(rect);
-    this.updateToolsState(selection);
+    this.show(e.clientX, e.clientY);
   }
 
-  show(rect) {
+  handleDocumentClick(e) {
+    // Hide if clicked outside the toolbar
+    if (this.isVisible && !this.toolbarElement.contains(e.target)) {
+        this.hide();
+    }
+  }
+
+  show(clientX, clientY) {
     // Add scroll offsets
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
 
-    // Calculate position (centered above the selection)
-    const toolbarWidth = this.toolbarElement.offsetWidth || 150; // Fallback width if not rendered yet
-    const left = rect.left + scrollX + (rect.width / 2) - (toolbarWidth / 2);
-    const top = rect.top + scrollY - this.toolbarElement.offsetHeight - 10; // 10px spacing
+    const left = clientX + scrollX;
+    const top = clientY + scrollY;
 
-    this.toolbarElement.style.left = `${left}px`;
-    this.toolbarElement.style.top = `${top > 0 ? top : rect.bottom + scrollY + 10}px`; // Flip to bottom if no space on top
+    // Show first to get dimensions if needed
     this.toolbarElement.style.display = 'flex';
+
+    // Adjust if it goes off screen
+    const rect = this.toolbarElement.getBoundingClientRect();
+    let finalLeft = left;
+    let finalTop = top;
+
+    if (clientX + rect.width > window.innerWidth) {
+        finalLeft = left - rect.width;
+    }
+    if (clientY + rect.height > window.innerHeight) {
+        finalTop = top - rect.height;
+    }
+
+    this.toolbarElement.style.left = `${finalLeft}px`;
+    this.toolbarElement.style.top = `${finalTop}px`;
     this.isVisible = true;
   }
 
@@ -111,6 +120,11 @@ export class InlineToolbar {
     if (this.toolbarElement && this.toolbarElement.parentNode) {
       this.toolbarElement.parentNode.removeChild(this.toolbarElement);
     }
-    document.removeEventListener('selectionchange', this.handleSelectionChange);
+    if (this.boundHandleContextMenu) {
+        this.api.container.removeEventListener('contextmenu', this.boundHandleContextMenu);
+    }
+    if (this.boundHandleDocumentClick) {
+        document.removeEventListener('click', this.boundHandleDocumentClick);
+    }
   }
 }
