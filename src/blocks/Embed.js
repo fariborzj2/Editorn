@@ -8,6 +8,7 @@ export class Embed {
       caption: data && data.caption ? data.caption : ''
     };
     this.api = api;
+    this.isMergeable = false;
     this.wrapper = undefined;
     this.iframeEl = undefined;
     this.captionEl = undefined;

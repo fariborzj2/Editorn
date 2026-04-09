@@ -7,6 +7,7 @@ export class Image {
       caption: data && data.caption ? data.caption : ''
     };
     this.api = api;
+    this.isMergeable = false;
     this.wrapper = undefined;
     this.imageEl = undefined;
     this.captionEl = undefined;

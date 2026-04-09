@@ -4,6 +4,7 @@ export class Paragraph {
   constructor({ data, api }) {
     this.data = data;
     this.api = api;
+    this.isMergeable = true;
     this.wrapper = undefined;
   }
 

@@ -246,46 +246,59 @@ export class FixedToolbar {
            renderer = this.api.api.renderer;
         }
 
-        // Find current block based on selection
-        const selection = window.getSelection();
-        let currentBlockEl = null;
+        // Use findActiveBlockIndex instead of DOM traversal
+        const blockIndex = this.api.findActiveBlockIndex ? this.api.findActiveBlockIndex() : (this.api.api && this.api.api.findActiveBlockIndex ? this.api.api.findActiveBlockIndex() : -1);
 
-        if (selection.rangeCount > 0) {
-            let node = selection.getRangeAt(0).startContainer;
-            while (node && node !== document.body) {
-                if (node.classList && node.classList.contains('editorn-block')) {
-                    currentBlockEl = node;
-                    break;
-                }
-                node = node.parentNode;
+        if (blockIndex !== -1) {
+            const currentBlock = blockManager.getBlocks()[blockIndex];
+
+            let content = '';
+            if (currentBlock.element.textContent.trim().length > 0) {
+               // Try to extract content gracefully based on block type if needed, or simply take innerHTML of the editable part
+               const editable = currentBlock.element.querySelector('[contenteditable="true"]');
+               if (editable) {
+                   content = editable.innerHTML;
+               } else if (currentBlock.element.contentEditable === "true") {
+                   content = currentBlock.element.innerHTML;
+               }
             }
-        }
 
-        if (currentBlockEl) {
-            const blockId = currentBlockEl.dataset.id;
-            const blocks = blockManager.getBlocks();
-            const blockIndex = blocks.findIndex(b => b.id === blockId);
-
-            if (blockIndex !== -1) {
-                let content = '';
-                if (currentBlockEl.textContent.trim().length > 0) {
-                   content = currentBlockEl.innerHTML;
-                }
-
-                let newData = {};
-                if (type === 'list') {
-                    newData = { style: 'unordered', items: [content] };
-                } else {
-                    newData = { text: content };
-                }
-
-                blockManager.removeBlock(blockIndex);
-                blockManager.insertBlock(type, newData, blockIndex);
-                if (renderer) renderer.renderBlocks(blockManager.getBlocks());
+            let newData = {};
+            if (type === 'list') {
+                newData = { style: 'unordered', items: [content] };
+            } else {
+                newData = { text: content };
             }
-        } else {
-            blockManager.insertBlock(type);
+
+            blockManager.removeBlock(blockIndex);
+            const newBlock = blockManager.insertBlock(type, newData, blockIndex);
             if (renderer) renderer.renderBlocks(blockManager.getBlocks());
+
+            // Invoke a mechanism to explicitly set focus to the newly created block
+            setTimeout(() => {
+                if (newBlock && newBlock.element) {
+                    if (newBlock.element.contentEditable === "true") {
+                        newBlock.element.focus();
+                    } else {
+                        const editable = newBlock.element.querySelector('[contenteditable="true"], input, textarea');
+                        if (editable) editable.focus();
+                    }
+                }
+            }, 0);
+        } else {
+            const newBlock = blockManager.insertBlock(type);
+            if (renderer) renderer.renderBlocks(blockManager.getBlocks());
+
+            setTimeout(() => {
+                if (newBlock && newBlock.element) {
+                    if (newBlock.element.contentEditable === "true") {
+                        newBlock.element.focus();
+                    } else {
+                        const editable = newBlock.element.querySelector('[contenteditable="true"], input, textarea');
+                        if (editable) editable.focus();
+                    }
+                }
+            }, 0);
         }
     }
 

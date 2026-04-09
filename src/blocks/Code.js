@@ -7,6 +7,7 @@ export class Code {
       language: data && data.language ? data.language : 'javascript'
     };
     this.api = api;
+    this.isMergeable = false;
     this.wrapper = undefined;
     this.textarea = undefined;
     this.pre = undefined;

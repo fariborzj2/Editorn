@@ -20,6 +20,33 @@ export class HistoryManager {
     }, 0);
   }
 
+  forceRecord() {
+    if (this.isRecording) return;
+    clearTimeout(this.debounceTimeout);
+
+    try {
+        const state = JSON.stringify(this.editor.save().blocks);
+
+        if (this.index >= 0 && this.history[this.index] === state) {
+            return;
+        }
+
+        if (this.index < this.history.length - 1) {
+            this.history = this.history.slice(0, this.index + 1);
+        }
+
+        this.history.push(state);
+
+        if (this.history.length > this.maxHistory) {
+            this.history.shift();
+        } else {
+            this.index++;
+        }
+    } catch (error) {
+        console.error("Failed to record history state:", error);
+    }
+  }
+
   record() {
     if (this.isRecording) return;
 
@@ -27,34 +54,12 @@ export class HistoryManager {
 
     // Use debouncing so we don't record every single keystroke immediately
     this.debounceTimeout = setTimeout(() => {
-        try {
-            const state = JSON.stringify(this.editor.save().blocks);
-
-            // If the state hasn't changed from the current state, don't record
-            if (this.index >= 0 && this.history[this.index] === state) {
-                return;
-            }
-
-            // If we are not at the end of the history array and we make a change,
-            // we discard the future history (redo stack).
-            if (this.index < this.history.length - 1) {
-                this.history = this.history.slice(0, this.index + 1);
-            }
-
-            this.history.push(state);
-
-            if (this.history.length > this.maxHistory) {
-                this.history.shift();
-            } else {
-                this.index++;
-            }
-        } catch (error) {
-            console.error("Failed to record history state:", error);
-        }
+        this.forceRecord();
     }, 500);
   }
 
   undo() {
+    this.forceRecord();
     if (this.index > 0) {
       this.isRecording = true;
       this.index--;
@@ -64,6 +69,7 @@ export class HistoryManager {
   }
 
   redo() {
+    this.forceRecord();
     if (this.index < this.history.length - 1) {
       this.isRecording = true;
       this.index++;

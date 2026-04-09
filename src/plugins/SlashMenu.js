@@ -97,9 +97,16 @@ export class SlashMenu {
         return;
     }
 
-    // Replace ZERO WIDTH SPACE (used by contenteditable to maintain selection)
-    const text = block.element.innerText.replace(/\u200B/g, '').trim();
-    if (text === '/' || text.endsWith('/')) {
+    // Refine the trigger condition to ensure the `/` is at the exact current cursor position and preceded by a space or start-of-line
+    const range = selection.getRangeAt(0);
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(block.element);
+    preRange.setEnd(range.startContainer, range.startOffset);
+
+    // Get text immediately before cursor
+    const textBeforeCursor = preRange.toString().replace(/\u200B/g, '');
+
+    if (textBeforeCursor === '/' || textBeforeCursor.endsWith(' /') || textBeforeCursor.endsWith('\n/')) {
       this.open(block.element, blockIndex);
     } else {
       this.close();
