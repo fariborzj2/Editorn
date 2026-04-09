@@ -6,19 +6,25 @@ import { HistoryManager } from './HistoryManager.js';
 import { DragDropManager } from './DragDropManager.js';
 
 export class EditorCore {
-  constructor(config) {
+  constructor(el, config = {}) {
     this.config = Object.assign({
-      el: null,
       data: { blocks: [] },
       onChange: null
     }, config);
 
-    this.el = typeof this.config.el === 'string' ? document.querySelector(this.config.el) : this.config.el;
+    this.el = typeof el === 'string' ? document.querySelector(el) : el;
 
     if (!this.el) {
       console.error('EditorCore: Target element not found');
       return;
     }
+
+    // Storage for new extension instances
+    this._activeExtensions = [];
+
+    // We will leave the plugin manager for backward compatibility if needed,
+    // but its role is significantly reduced.
+    this.pluginManager = new PluginManager(this);
 
     this.init();
   }
@@ -31,26 +37,28 @@ export class EditorCore {
 
     this.renderer = new Renderer(this.container);
     this.blockManager = new BlockManager(this);
-    this.pluginManager = new PluginManager(this);
     this.pasteManager = new PasteManager(this);
     this.historyManager = new HistoryManager(this);
     this.dragDropManager = new DragDropManager(this);
 
-    this.renderInitialData();
+    // Initial data rendering is deferred until extensions are loaded.
+    // It should be explicitly called.
 
     // Listen to container events to handle block creation (Enter key)
     this.container.addEventListener('keydown', (e) => this.handleGlobalKeydown(e));
   }
 
   renderInitialData() {
-    const blocks = this.config.data.blocks;
+    const blocks = this.config.data && this.config.data.blocks ? this.config.data.blocks : [];
     if (blocks && blocks.length > 0) {
       blocks.forEach(blockData => {
         this.blockManager.insertBlock(blockData.type, blockData.data);
       });
     } else {
       // Create an empty paragraph block by default
-      this.blockManager.insertBlock('paragraph');
+      if (this.blockManager.blockClasses && this.blockManager.blockClasses['paragraph']) {
+          this.blockManager.insertBlock('paragraph');
+      }
     }
 
     this.renderer.renderBlocks(this.blockManager.getBlocks());
@@ -191,5 +199,14 @@ export class EditorCore {
       version: '1.0.0',
       blocks: this.blockManager.save()
     };
+  }
+
+  destroy() {
+    this._activeExtensions.forEach(ext => {
+      if (typeof ext.destroy === 'function') {
+        ext.destroy();
+      }
+    });
+    this.el.innerHTML = '';
   }
 }

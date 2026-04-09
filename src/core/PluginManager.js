@@ -25,6 +25,13 @@ export class PluginManager {
   }
 
   /**
+   * Add an existing plugin instance
+   */
+  addInstance(name, instance) {
+    this.plugins.set(name, instance);
+  }
+
+  /**
    * Get a registered plugin by name
    * @param {string} name
    * @returns {object|undefined}

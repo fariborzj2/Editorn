@@ -22,7 +22,6 @@
       margin-bottom: 20px;
     }
     .editorn-container {
-      min-height: 200px;
       padding: 20px;
     }
     .editorn-block-paragraph {
@@ -81,48 +80,44 @@
   <script type="module">
     import Editorn from './src/index.js';
 
-    const editor = new Editorn({
-      el: '#editor-container',
+    let activeEditor = null;
+
+    Editorn.init({
+      selector: '#editor-container',
+      height: 500,
+
+      plugins: [
+        'inline-toolbar', 'fixed-toolbar', 'slash-menu',
+        'bold', 'italic', 'underline', 'link',
+        'header', 'list', 'quote', 'divider', 'image', 'embed', 'table', 'code'
+      ],
+
+      toolbar: "bold italic underline | link | header list quote divider | image embed table code",
+
       data: {
         blocks: [
           {
             type: 'paragraph',
-            data: { text: 'سلام! این ویرایشگر جدید مبتنی بر بلوک است.' }
+            data: { text: 'سلام! این ویرایشگر جدید مبتنی بر بلوک با API تنظیمات مدرن است.' }
           }
         ]
       },
+
       onChange: (data) => {
-        console.log('Content changed:', data);
+        console.log('Content changed');
+      },
+
+      onReady: (editor) => {
+        activeEditor = editor;
+        console.log('Editor is ready and fully loaded!');
       }
     });
 
-    // Initialize Phase 2 Plugins
-    editor.pluginManager.register('inlineToolbar', window.EditornPlugins.InlineToolbar, {
-      tools: [
-        window.EditornPlugins.BoldTool,
-        window.EditornPlugins.ItalicTool,
-        window.EditornPlugins.UnderlineTool,
-        window.EditornPlugins.LinkTool
-      ]
-    });
-
-    // Initialize Phase 7 Fixed Toolbar
-    editor.pluginManager.register('fixedToolbar', window.EditornPlugins.FixedToolbar, {
-      tools: [
-        window.EditornPlugins.BoldTool,
-        window.EditornPlugins.ItalicTool,
-        window.EditornPlugins.UnderlineTool,
-        window.EditornPlugins.LinkTool
-      ],
-      blocks: ['paragraph', 'header', 'list', 'quote', 'divider', 'image', 'embed', 'table', 'code']
-    });
-
-    // Initialize Phase 3 Plugins
-    editor.pluginManager.register('slashMenu', window.EditornPlugins.SlashMenu, {});
-
     document.getElementById('save-btn').addEventListener('click', () => {
-      const data = editor.save();
-      document.getElementById('output-container').textContent = JSON.stringify(data, null, 2);
+      if (activeEditor) {
+         const data = activeEditor.save();
+         document.getElementById('output-container').textContent = JSON.stringify(data, null, 2);
+      }
     });
   </script>
 </body>
