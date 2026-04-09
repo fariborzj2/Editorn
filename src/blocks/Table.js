@@ -46,9 +46,15 @@ export class Table {
 
       td.addEventListener('input', () => {
           if (td.innerHTML === '') td.innerHTML = '<br>';
+          if (this.api && this.api.directionManager) {
+            this.api.directionManager.applyToElement(td, td.innerText || td.textContent);
+          }
           this.api.triggerChange();
       });
 
+      if (this.api && this.api.directionManager) {
+          this.api.directionManager.applyToElement(td, td.innerText || td.textContent);
+      }
       return td;
   }
 

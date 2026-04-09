@@ -24,6 +24,9 @@ export class Quote {
 
     this.textEl.addEventListener('input', () => {
       if (this.textEl.innerHTML === '') this.textEl.innerHTML = '<br>';
+      if (this.api && this.api.directionManager) {
+        this.api.directionManager.applyToElement(this.textEl, this.textEl.innerText || this.textEl.textContent);
+      }
       this.api.triggerChange();
     });
 
@@ -35,12 +38,20 @@ export class Quote {
 
     this.captionEl.addEventListener('input', () => {
       if (this.captionEl.innerHTML === '') this.captionEl.innerHTML = '<br>';
+      if (this.api && this.api.directionManager) {
+        this.api.directionManager.applyToElement(this.captionEl, this.captionEl.innerText || this.captionEl.textContent);
+      }
       this.api.triggerChange();
     });
 
     this.wrapper.appendChild(this.textEl);
     this.wrapper.appendChild(this.captionEl);
 
+
+    if (this.api && this.api.directionManager) {
+      this.api.directionManager.applyToElement(this.textEl, this.textEl.innerText || this.textEl.textContent);
+      this.api.directionManager.applyToElement(this.captionEl, this.captionEl.innerText || this.captionEl.textContent);
+    }
     return this.wrapper;
   }
 

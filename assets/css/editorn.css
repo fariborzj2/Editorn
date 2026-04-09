@@ -219,3 +219,40 @@
     margin-bottom: 5px;
     z-index: 10;
 }
+
+/* Deterministic Direction CSS Definitions for Block Editor */
+[class^="editorn-block-"][dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: isolate-override;
+  white-space: pre-wrap;
+  caret-color: var(--color-primary, #000);
+}
+
+[class^="editorn-block-"][dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate-override;
+  white-space: pre-wrap;
+  caret-color: var(--color-primary, #000);
+}
+
+[class^="editorn-block-"][dir="rtl"] strong,
+[class^="editorn-block-"][dir="rtl"] em,
+[class^="editorn-block-"][dir="rtl"] b,
+[class^="editorn-block-"][dir="rtl"] i,
+[class^="editorn-block-"][dir="rtl"] u,
+[class^="editorn-block-"][dir="rtl"] a,
+[class^="editorn-block-"][dir="ltr"] strong,
+[class^="editorn-block-"][dir="ltr"] em,
+[class^="editorn-block-"][dir="ltr"] b,
+[class^="editorn-block-"][dir="ltr"] i,
+[class^="editorn-block-"][dir="ltr"] u,
+[class^="editorn-block-"][dir="ltr"] a {
+  unicode-bidi: isolate;
+}
+
+.editorn-container {
+   /* Allow general editor container to fall back correctly */
+   text-align: start;
+}

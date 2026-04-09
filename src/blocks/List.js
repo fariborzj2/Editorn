@@ -20,6 +20,9 @@ export class List {
       li.innerHTML = item ? Sanitizer.sanitize(item) : '<br>';
       li.addEventListener('input', () => {
         if (li.innerHTML === '') li.innerHTML = '<br>';
+        if (this.api && this.api.directionManager) {
+          this.api.directionManager.applyToElement(li, li.innerText || li.textContent);
+        }
         this.api.triggerChange();
       });
       // Handle enter key locally to add new list items
@@ -33,12 +36,22 @@ export class List {
       li.innerHTML = '<br>';
       li.addEventListener('input', () => {
         if (li.innerHTML === '') li.innerHTML = '<br>';
+        if (this.api && this.api.directionManager) {
+          this.api.directionManager.applyToElement(li, li.innerText || li.textContent);
+        }
         this.api.triggerChange();
       });
       li.addEventListener('keydown', (e) => this.handleKeydown(e, li));
       this.wrapper.appendChild(li);
     }
 
+
+    // Apply direction to initial items
+    if (this.api && this.api.directionManager) {
+      Array.from(this.wrapper.children).forEach(li => {
+        this.api.directionManager.applyToElement(li, li.innerText || li.textContent);
+      });
+    }
     return this.wrapper;
   }
 
@@ -68,6 +81,9 @@ export class List {
       newLi.innerHTML = '<br>';
       newLi.addEventListener('input', () => {
         if (newLi.innerHTML === '') newLi.innerHTML = '<br>';
+        if (this.api && this.api.directionManager) {
+          this.api.directionManager.applyToElement(newLi, newLi.innerText || newLi.textContent);
+        }
         this.api.triggerChange();
       });
       newLi.addEventListener('keydown', (e2) => this.handleKeydown(e2, newLi));
