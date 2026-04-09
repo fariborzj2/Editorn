@@ -33,6 +33,8 @@ To enforce security and strict architectural boundaries, plugins do not receive 
 - `context.ui.container`: The main editor DOM element.
 - `context.model.insertBlock()`: Safely create new blocks.
 - `context.model.getBlocks()`: Retrieve the current block state.
+- `context.api.directionManager`: The instance managing the block text directions (`rtl`, `ltr`, `auto`). Call `applyToElement(el, text)` to safely apply correct direction rules to user-input DOM nodes.
+- `context.api.i18n`: The internationalization utility. Use `i18n.t('key', 'Fallback')` to correctly retrieve localized strings for custom extension interfaces.
 
 ## Writing an Extension
 
