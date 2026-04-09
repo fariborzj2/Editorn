@@ -201,9 +201,24 @@ export class Code {
       // Load specific language if not already loaded (html, css, js are usually bundled)
       if (!this.Prism.languages[lang]) {
         try {
-          await import(/* @vite-ignore */ `prismjs/components/prism-${lang}.js`);
+          switch (lang) {
+            case 'javascript': await import('prismjs/components/prism-javascript.js'); break;
+            case 'html': await import('prismjs/components/prism-markup.js'); break; // Prism uses 'markup' for html/xml
+            case 'css': await import('prismjs/components/prism-css.js'); break;
+            case 'python': await import('prismjs/components/prism-python.js'); break;
+            case 'java': await import('prismjs/components/prism-java.js'); break;
+            case 'c': await import('prismjs/components/prism-c.js'); break;
+            case 'cpp': await import('prismjs/components/prism-cpp.js'); break;
+            case 'csharp': await import('prismjs/components/prism-csharp.js'); break;
+            case 'php': await import('prismjs/components/prism-php.js'); break;
+            case 'sql': await import('prismjs/components/prism-sql.js'); break;
+            case 'bash': await import('prismjs/components/prism-bash.js'); break;
+            case 'json': await import('prismjs/components/prism-json.js'); break;
+            case 'typescript': await import('prismjs/components/prism-typescript.js'); break;
+            default: console.warn(`Language ${lang} is not supported directly in bundle.`);
+          }
         } catch (e) {
-          console.warn(`Failed to load PrismJS language component: \${lang}`, e);
+          console.warn(`Failed to load PrismJS language component: ${lang}`, e);
         }
       }
 
