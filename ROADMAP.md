@@ -98,3 +98,12 @@
   - ایجاد یک نوار ثابت در هدر ویرایشگر.
   - افزودن دکمه‌های فرمت‌بندی درون‌خطی (Bold, Italic, Underline, Link).
   - افزودن دکمه‌های درج و تبدیل بلوک‌ها (Paragraph, Header, List, Quote, Divider, Image, Embed, Table, Code).
+---
+
+## فاز ۸: معماری تولید و مقیاس‌پذیری (Production Architecture & Scalability API)
+**هدف:** بازطراحی سیستم رجیستری و تنظیمات اولیه برای رسیدن به یک API کاملاً Declarative (مشابه TinyMCE) جهت راحتی استفاده توسعه‌دهندگان و مقیاس‌پذیری بالای سیستم.
+
+- [x] **طراحی ExtensionContext:** ایجاد یک Context ایمن برای پلاگین‌ها جهت دسترسی کنترل‌شده به متدهای EditorCore.
+- [x] **طراحی ExtensionRegistry:** پیاده‌سازی سیستم رجیستری مرکزی با پشتیبانی از کشف وابستگی (Topological Sort).
+- [x] **طراحی ToolbarParser:** امکان ایجاد ساختار نوار ابزار با استفاده از رشته‌های ساده (String syntax).
+- [x] **بازنویسی Bootstrapper (`Editorn.init`):** جایگزینی فرآیند Hardcoded ثبت ابزارها با یک سیستم مدیریت چرخه حیات Declarative.
