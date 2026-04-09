@@ -26,7 +26,14 @@ export class BlockManager {
 
     // Support both the old API and the new Context API
     // We pass the injected context instead of the raw editor
-    const blockInstance = new BlockClass(this.context || { data, api: this.editor }, data);
+    let injectionContext;
+    if (this.context) {
+       // Legacy blocks might destructure `({ data, api })` in constructor
+       injectionContext = Object.assign(Object.create(this.context), { data, api: this.context.api });
+    } else {
+       injectionContext = { data, api: this.editor };
+    }
+    const blockInstance = new BlockClass(injectionContext, data);
 
     // Legacy blocks might need `data` on the instance itself
     if (!blockInstance.data) blockInstance.data = data;
