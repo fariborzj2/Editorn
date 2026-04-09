@@ -2,7 +2,11 @@ import { Sanitizer } from '../utils/Sanitizer.js';
 
 export class Embed {
   constructor({ data, api }) {
-    this.data = data || { url: '', service: '', caption: '' };
+    this.data = {
+      url: data && data.url ? data.url : '',
+      service: data && data.service ? data.service : '',
+      caption: data && data.caption ? data.caption : ''
+    };
     this.api = api;
     this.wrapper = undefined;
     this.iframeEl = undefined;

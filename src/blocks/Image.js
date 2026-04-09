@@ -2,7 +2,10 @@ import { Sanitizer } from '../utils/Sanitizer.js';
 
 export class Image {
   constructor({ data, api }) {
-    this.data = data || { url: '', caption: '' };
+    this.data = {
+      url: data && data.url ? data.url : '',
+      caption: data && data.caption ? data.caption : ''
+    };
     this.api = api;
     this.wrapper = undefined;
     this.imageEl = undefined;

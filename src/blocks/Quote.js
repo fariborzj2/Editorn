@@ -2,7 +2,10 @@ import { Sanitizer } from '../utils/Sanitizer.js';
 
 export class Quote {
   constructor({ data, api }) {
-    this.data = data || { text: '', caption: '' };
+    this.data = {
+      text: data && data.text ? data.text : '',
+      caption: data && data.caption ? data.caption : ''
+    };
     this.api = api;
     this.wrapper = undefined;
     this.textEl = undefined;
