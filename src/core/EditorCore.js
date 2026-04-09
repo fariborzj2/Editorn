@@ -145,40 +145,70 @@ export class EditorCore {
           e.preventDefault();
           const previousBlock = this.blockManager.getBlocks()[currentBlockIndex - 1];
 
-          const markerId = 'cursor-marker-' + Date.now();
-          const marker = `<span id="${markerId}"></span>`;
+          if (previousBlock.instance.isMergeable === false) {
+             // If previous block is not mergeable, just delete current block if empty and focus previous
+             const currHtml = currentBlock.element.innerHTML === '<br>' ? '' : currentBlock.element.innerHTML;
 
-          const prevHtml = previousBlock.element.innerHTML === '<br>' ? '' : previousBlock.element.innerHTML;
-          const currHtml = currentBlock.element.innerHTML === '<br>' ? '' : currentBlock.element.innerHTML;
-
-          previousBlock.element.innerHTML = prevHtml + marker + currHtml;
-
-          if (previousBlock.element.innerHTML === '') {
-              previousBlock.element.innerHTML = '<br>';
-          }
-
-          this.blockManager.removeBlock(currentBlockIndex);
-
-          this.renderer.renderBlocks(this.blockManager.getBlocks());
-
-          const markerEl = document.getElementById(markerId);
-          if (markerEl) {
-            const newSelection = window.getSelection();
-            const newRange = document.createRange();
-            newRange.setStartBefore(markerEl);
-            newRange.collapse(true);
-            newSelection.removeAllRanges();
-            newSelection.addRange(newRange);
-            markerEl.remove();
+             // Optionally, if current block is not empty, do not delete it, but do we merge?
+             // Usually, if previous is not mergeable, we just focus the previous block, but the issue says "Backspace should simply delete the current empty block and place focus appropriately in the previous block"
+             if (currHtml.trim() === '') {
+                 this.blockManager.removeBlock(currentBlockIndex);
+                 this.renderer.renderBlocks(this.blockManager.getBlocks());
+                 // Focus previous
+                 if (previousBlock.element.contentEditable === "true") {
+                     previousBlock.element.focus();
+                 } else {
+                     const editable = previousBlock.element.querySelector('[contenteditable="true"], input, textarea');
+                     if (editable) editable.focus();
+                     else previousBlock.element.focus();
+                 }
+                 this.triggerChange();
+             } else {
+                 // Focus previous block end
+                 if (previousBlock.element.contentEditable === "true") {
+                     previousBlock.element.focus();
+                 } else {
+                     const editable = previousBlock.element.querySelector('[contenteditable="true"], input, textarea');
+                     if (editable) editable.focus();
+                     else previousBlock.element.focus();
+                 }
+             }
           } else {
-             previousBlock.element.focus();
-          }
+              const markerId = 'cursor-marker-' + Date.now();
+              const marker = `<span id="${markerId}"></span>`;
 
-          if (previousBlock.instance.data) {
-              previousBlock.instance.data.text = previousBlock.element.innerHTML;
-          }
+              const prevHtml = previousBlock.element.innerHTML === '<br>' ? '' : previousBlock.element.innerHTML;
+              const currHtml = currentBlock.element.innerHTML === '<br>' ? '' : currentBlock.element.innerHTML;
 
-          this.triggerChange();
+              previousBlock.element.innerHTML = prevHtml + marker + currHtml;
+
+              if (previousBlock.element.innerHTML === '') {
+                  previousBlock.element.innerHTML = '<br>';
+              }
+
+              this.blockManager.removeBlock(currentBlockIndex);
+
+              this.renderer.renderBlocks(this.blockManager.getBlocks());
+
+              const markerEl = document.getElementById(markerId);
+              if (markerEl) {
+                const newSelection = window.getSelection();
+                const newRange = document.createRange();
+                newRange.setStartBefore(markerEl);
+                newRange.collapse(true);
+                newSelection.removeAllRanges();
+                newSelection.addRange(newRange);
+                markerEl.remove();
+              } else {
+                 previousBlock.element.focus();
+              }
+
+              if (previousBlock.instance.data) {
+                 previousBlock.instance.data.text = previousBlock.element.innerHTML;
+              }
+
+              this.triggerChange();
+          }
         }
       }
     }

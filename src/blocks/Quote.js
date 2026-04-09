@@ -7,6 +7,7 @@ export class Quote {
       caption: data && data.caption ? data.caption : ''
     };
     this.api = api;
+    this.isMergeable = true;
     this.wrapper = undefined;
     this.textEl = undefined;
     this.captionEl = undefined;

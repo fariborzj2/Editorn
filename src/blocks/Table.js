@@ -4,6 +4,7 @@ export class Table {
   constructor({ data, api }) {
     this.data = data && data.content ? data : { content: [['', ''], ['', '']] }; // Default 2x2 table
     this.api = api;
+    this.isMergeable = false;
     this.wrapper = undefined;
     this.tableEl = undefined;
   }

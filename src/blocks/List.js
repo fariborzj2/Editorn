@@ -7,6 +7,7 @@ export class List {
       items: data && data.items ? data.items : ['']
     };
     this.api = api;
+    this.isMergeable = false;
     this.wrapper = undefined;
   }
 

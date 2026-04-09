@@ -2,6 +2,7 @@ export class Divider {
   constructor({ data, api }) {
     this.data = data || {};
     this.api = api;
+    this.isMergeable = false;
     this.wrapper = undefined;
   }
 

@@ -7,6 +7,7 @@ export class Header {
       level: data && data.level ? data.level : 2
     };
     this.api = api;
+    this.isMergeable = true;
     this.wrapper = undefined;
   }
 
