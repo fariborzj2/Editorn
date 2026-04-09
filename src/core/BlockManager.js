@@ -1,35 +1,37 @@
 import { IdGenerator } from '../utils/IdGenerator.js';
-import { Paragraph } from '../blocks/Paragraph.js';
-import { Header } from '../blocks/Header.js';
-import { List } from '../blocks/List.js';
-import { Quote } from '../blocks/Quote.js';
-import { Divider } from '../blocks/Divider.js';
-import { Image } from '../blocks/Image.js';
-import { Embed } from '../blocks/Embed.js';
 
 export class BlockManager {
   constructor(editor) {
     this.editor = editor;
     this.blocks = [];
-    this.blockClasses = {
-      paragraph: Paragraph,
-      header: Header,
-      list: List,
-      quote: Quote,
-      divider: Divider,
-      image: Image,
-      embed: Embed
-    };
+    this.blockClasses = {};
+    // Store the context once passed
+    this.context = null;
+  }
+
+  register(name, implementation) {
+    this.blockClasses[name] = implementation;
+  }
+
+  setContext(context) {
+    this.context = context;
   }
 
   insertBlock(type = 'paragraph', data = {}, index = this.blocks.length) {
     const BlockClass = this.blockClasses[type];
     if (!BlockClass) {
-      console.error(`Block type "${type}" not found.`);
+      console.warn(`Block type "${type}" not found.`);
       return null;
     }
 
-    const blockInstance = new BlockClass({ data, api: this.editor });
+    // Support both the old API and the new Context API
+    // We pass the injected context instead of the raw editor
+    const blockInstance = new BlockClass(this.context || { data, api: this.editor }, data);
+
+    // Legacy blocks might need `data` on the instance itself
+    if (!blockInstance.data) blockInstance.data = data;
+
+    // Some blocks might override the wrapper property during render.
     const blockElement = blockInstance.render();
 
     const blockObj = {
