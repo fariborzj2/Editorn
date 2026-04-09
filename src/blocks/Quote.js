@@ -13,14 +13,17 @@ export class Quote {
   }
 
   render() {
+
+    const i18n = this.api.i18n || (this.api.api && this.api.api.i18n) || { t: (key, fallback) => fallback || key };
     this.wrapper = document.createElement('blockquote');
+
     this.wrapper.classList.add('editorn-block-quote');
 
     this.textEl = document.createElement('div');
     this.textEl.classList.add('editorn-quote-text');
     this.textEl.contentEditable = true;
     this.textEl.innerHTML = this.data.text ? Sanitizer.sanitize(this.data.text) : '<br>';
-    this.textEl.dataset.placeholder = 'Quote...';
+    this.textEl.dataset.placeholder = i18n.t('quote.quotePlaceholder', 'Quote...');
 
     this.textEl.addEventListener('input', () => {
       if (this.textEl.innerHTML === '') this.textEl.innerHTML = '<br>';
@@ -34,7 +37,7 @@ export class Quote {
     this.captionEl.classList.add('editorn-quote-caption');
     this.captionEl.contentEditable = true;
     this.captionEl.innerHTML = this.data.caption ? Sanitizer.sanitize(this.data.caption) : '<br>';
-    this.captionEl.dataset.placeholder = 'Caption...';
+    this.captionEl.dataset.placeholder = i18n.t('quote.captionPlaceholder', 'Caption...');
 
     this.captionEl.addEventListener('input', () => {
       if (this.captionEl.innerHTML === '') this.captionEl.innerHTML = '<br>';

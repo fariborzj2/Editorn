@@ -8,7 +8,8 @@ export class ItalicTool extends BaseInlineTool {
   }
 
   getTitle() {
-    return 'Italic';
+    const i18n = this.api.i18n || (this.api.api && this.api.api.i18n) || { t: (key, fallback) => fallback || key };
+    return i18n.t('toolbar.italic', 'Italic');
   }
 
   isActiveOnNode(node) {

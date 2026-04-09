@@ -28,6 +28,7 @@ export class ExtensionContext {
        historyManager: editorCore.historyManager,
        renderer: editorCore.renderer,
        directionManager: editorCore.directionManager,
+       i18n: editorCore.i18n,
     };
 
     // To prevent legacy tools from failing on `this.api = context`

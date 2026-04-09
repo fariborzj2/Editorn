@@ -8,7 +8,8 @@ export class LinkTool extends BaseInlineTool {
   }
 
   getTitle() {
-    return 'Link';
+    const i18n = this.api.i18n || (this.api.api && this.api.api.i18n) || { t: (key, fallback) => fallback || key };
+    return i18n.t('toolbar.link', 'Link');
   }
 
   isActiveOnNode(node) {
