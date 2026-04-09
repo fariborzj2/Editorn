@@ -12,8 +12,15 @@ export class FixedToolbar {
 
     init() {
         this.createToolbar();
-        this.registerInlineTools();
-        this.registerBlockTools();
+
+        if (this.config.layout && Array.isArray(this.config.layout)) {
+            this.renderParsedLayout();
+        } else {
+            // Legacy rendering
+            this.registerInlineTools();
+            this.registerBlockTools();
+        }
+
         this.bindEvents();
     }
 
@@ -32,8 +39,111 @@ export class FixedToolbar {
         this.toolbarElement.style.flexWrap = 'wrap';
 
         // Insert toolbar before the editor container
-        const wrapper = this.api.container.parentElement;
-        wrapper.insertBefore(this.toolbarElement, this.api.container);
+        const wrapper = this.api.container ? this.api.container.parentElement : this.api.ui.container.parentElement;
+        const container = this.api.container || this.api.ui.container;
+        wrapper.insertBefore(this.toolbarElement, container);
+    }
+
+    renderParsedLayout() {
+        // Find registered tools (e.g. from GlobalRegistry or passed in config)
+        // config.tools should contain an array of ToolClasses.
+        // But in the new architecture, we want a string lookup.
+        // Let's create a map of available tools and blocks.
+        const availableInlineTools = {};
+        if (this.config.tools) {
+            this.config.tools.forEach(ToolClass => {
+                // Determine name somehow. If ToolClass has a static property or just rely on global registry?
+                // For simplicity, we can guess by constructor name.
+                // A better approach is that `this.config.tools` could be a map if passed from bootstrapper.
+                // Let's rely on standard names and map them.
+                const name = ToolClass.name.toLowerCase().replace('tool', '');
+                availableInlineTools[name] = ToolClass;
+            });
+            // specific mappings
+            const toolArray = Array.isArray(this.config.tools) ? this.config.tools : [];
+            const bold = toolArray.find(t => t.name === 'BoldTool');
+            if (bold) availableInlineTools['bold'] = bold;
+            const italic = toolArray.find(t => t.name === 'ItalicTool');
+            if (italic) availableInlineTools['italic'] = italic;
+            const underline = toolArray.find(t => t.name === 'UnderlineTool');
+            if (underline) availableInlineTools['underline'] = underline;
+            const link = toolArray.find(t => t.name === 'LinkTool');
+            if (link) availableInlineTools['link'] = link;
+        }
+
+        const icons = {
+            paragraph: renderLucideIcon(Type),
+            header: renderLucideIcon(Heading),
+            list: renderLucideIcon(List),
+            quote: renderLucideIcon(Quote),
+            divider: renderLucideIcon(Minus),
+            image: renderLucideIcon(Image),
+            embed: renderLucideIcon(Video),
+            table: renderLucideIcon(Table),
+            code: renderLucideIcon(Code)
+        };
+
+        const availableBlocks = {
+            paragraph: { type: 'paragraph', icon: icons.paragraph, title: 'Paragraph' },
+            header: { type: 'header', icon: icons.header, title: 'Header' },
+            list: { type: 'list', icon: icons.list, title: 'List' },
+            quote: { type: 'quote', icon: icons.quote, title: 'Quote' },
+            divider: { type: 'divider', icon: icons.divider, title: 'Divider' },
+            image: { type: 'image', icon: icons.image, title: 'Image' },
+            embed: { type: 'embed', icon: icons.embed, title: 'Embed' },
+            table: { type: 'table', icon: icons.table, title: 'Table' },
+            code: { type: 'code', icon: icons.code, title: 'Code' }
+        };
+
+        // Layout is an array of groups, each group is an array of items.
+        // Example: [['undo', 'redo'], ['bold', 'italic'], ['link']]
+        this.config.layout.forEach((group, index) => {
+            const groupEl = document.createElement('div');
+            groupEl.classList.add('editorn-toolbar-group');
+            groupEl.style.display = 'flex';
+            groupEl.style.gap = '4px';
+
+            // Add visual separator after group (except for the last one)
+            if (index < this.config.layout.length - 1) {
+                groupEl.style.borderRight = '1px solid #eee';
+                groupEl.style.paddingRight = '8px';
+            }
+
+            group.forEach(itemName => {
+                const name = typeof itemName === 'string' ? itemName : itemName.name;
+
+                if (availableInlineTools[name]) {
+                    const ToolClass = availableInlineTools[name];
+                    const tool = new ToolClass({ api: this.api });
+                    this.tools.push(tool);
+                    groupEl.appendChild(tool.render());
+                } else if (availableBlocks[name]) {
+                    const block = availableBlocks[name];
+                    const button = document.createElement('button');
+                    button.innerHTML = block.icon;
+                    button.title = block.title;
+                    button.type = 'button';
+                    button.classList.add('editorn-toolbar-button');
+                    button.dataset.type = block.type;
+
+                    button.style.padding = '4px 8px';
+                    button.style.border = '1px solid transparent';
+                    button.style.background = 'transparent';
+                    button.style.cursor = 'pointer';
+                    button.style.borderRadius = '4px';
+
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.handleBlockClick(block.type);
+                    });
+
+                    this.blockButtons.push(button);
+                    groupEl.appendChild(button);
+                }
+            });
+
+            this.toolbarElement.appendChild(groupEl);
+        });
     }
 
     registerInlineTools() {
@@ -58,7 +168,6 @@ export class FixedToolbar {
     }
 
     registerBlockTools() {
-        // Read from config.blocks (array of strings, e.g. ['paragraph', 'header', 'list']), default to all if not provided
         const configuredBlocks = this.config.blocks || ['paragraph', 'header', 'list', 'quote', 'divider', 'image', 'embed', 'table', 'code'];
 
         if (configuredBlocks.length === 0) return;
@@ -103,7 +212,6 @@ export class FixedToolbar {
             button.classList.add('editorn-toolbar-button');
             button.dataset.type = block.type;
 
-            // Minimal button styling inline for fallback (can be overwritten by css)
             button.style.padding = '4px 8px';
             button.style.border = '1px solid transparent';
             button.style.background = 'transparent';
@@ -123,6 +231,13 @@ export class FixedToolbar {
     }
 
     handleBlockClick(type) {
+        let blockManager = this.api.blockManager || this.api.model;
+        let renderer = this.api.renderer; // Depending on injected context or raw EditorCore
+
+        if (!renderer && this.api.api && this.api.api.renderer) {
+           renderer = this.api.api.renderer;
+        }
+
         // Find current block based on selection
         const selection = window.getSelection();
         let currentBlockEl = null;
@@ -140,17 +255,15 @@ export class FixedToolbar {
 
         if (currentBlockEl) {
             const blockId = currentBlockEl.dataset.id;
-            const blocks = this.api.blockManager.getBlocks();
+            const blocks = blockManager.getBlocks();
             const blockIndex = blocks.findIndex(b => b.id === blockId);
 
             if (blockIndex !== -1) {
-                // Get content from current block if any
                 let content = '';
                 if (currentBlockEl.textContent.trim().length > 0) {
                    content = currentBlockEl.innerHTML;
                 }
 
-                // Construct appropriate data object based on block type
                 let newData = {};
                 if (type === 'list') {
                     newData = { style: 'unordered', items: [content] };
@@ -158,14 +271,13 @@ export class FixedToolbar {
                     newData = { text: content };
                 }
 
-                this.api.blockManager.removeBlock(blockIndex);
-                this.api.blockManager.insertBlock(type, newData, blockIndex);
-                this.api.renderer.renderBlocks(this.api.blockManager.getBlocks());
+                blockManager.removeBlock(blockIndex);
+                blockManager.insertBlock(type, newData, blockIndex);
+                if (renderer) renderer.renderBlocks(blockManager.getBlocks());
             }
         } else {
-            // Append a new block
-            this.api.blockManager.insertBlock(type);
-            this.api.renderer.renderBlocks(this.api.blockManager.getBlocks());
+            blockManager.insertBlock(type);
+            if (renderer) renderer.renderBlocks(blockManager.getBlocks());
         }
     }
 

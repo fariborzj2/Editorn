@@ -26,6 +26,7 @@ export class ExtensionContext {
        pluginManager: editorCore.pluginManager,
        el: editorCore.el,
        historyManager: editorCore.historyManager,
+       renderer: editorCore.renderer,
     };
 
     // To prevent legacy tools from failing on `this.api = context`

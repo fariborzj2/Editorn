@@ -18,3 +18,6 @@ Failed to resolve dependency: react/jsx-runtime, present in client 'optimizeDeps
 7:01:37 AM [vite] (client) page reload src/core/ExtensionContext.js
 7:02:03 AM [vite] (client) page reload src/core/BlockManager.js
 7:02:32 AM [vite] (client) page reload src/index.js
+7:57:19 AM [vite] (client) page reload src/plugins/FixedToolbar.js
+8:01:51 AM [vite] (client) page reload src/core/ExtensionContext.js
+8:02:25 AM [vite] (client) page reload src/core/BlockManager.js
