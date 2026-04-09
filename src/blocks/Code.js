@@ -200,7 +200,7 @@ export class Code {
       // Load specific language if not already loaded (html, css, js are usually bundled)
       if (!this.Prism.languages[lang]) {
         try {
-          await import(`prismjs/components/prism-\${lang}.js`);
+          await import(/* @vite-ignore */ `prismjs/components/prism-${lang}.js`);
         } catch (e) {
           console.warn(`Failed to load PrismJS language component: \${lang}`, e);
         }
