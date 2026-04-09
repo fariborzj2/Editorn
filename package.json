@@ -43,7 +43,8 @@
   },
   "dependencies": {
     "dompurify": "^3.3.3",
-    "lucide": "^1.7.0"
+    "lucide": "^1.7.0",
+    "prismjs": "^1.30.0"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

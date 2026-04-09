@@ -7,17 +7,42 @@ Failed to resolve dependency: react-dom, present in client 'optimizeDeps.include
 Failed to resolve dependency: react/jsx-dev-runtime, present in client 'optimizeDeps.include'
 Failed to resolve dependency: react/jsx-runtime, present in client 'optimizeDeps.include'
 
-  VITE v8.0.7  ready in 263 ms
+  VITE v8.0.7  ready in 276 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
-6:56:48 AM [vite] (client) page reload src/core/PluginManager.js
-6:56:48 AM [vite] (client) page reload src/core/PluginManager.js
-6:57:14 AM [vite] (client) page reload src/index.js
-6:59:22 AM [vite] (client) page reload src/index.js
-7:01:37 AM [vite] (client) page reload src/core/ExtensionContext.js
-7:02:03 AM [vite] (client) page reload src/core/BlockManager.js
-7:02:32 AM [vite] (client) page reload src/index.js
-7:57:19 AM [vite] (client) page reload src/plugins/FixedToolbar.js
-8:01:51 AM [vite] (client) page reload src/core/ExtensionContext.js
-8:02:25 AM [vite] (client) page reload src/core/BlockManager.js
+(!) Failed to run dependency scan. Skipping dependency pre-bundling. Error: The following dependencies are imported but could not be resolved:
+
+  prismjs/components/prism-${lang}.js (imported by /app/src/blocks/Code.js)
+
+Are they installed?
+    at file:///app/node_modules/vite/dist/node/chunks/node.js:31354:33
+    at async file:///app/node_modules/vite/dist/node/chunks/node.js:23178:15
+10:53:20 AM [vite] (client) warning:
+/app/src/blocks/Code.js
+197 |  			if (!this.Prism.languages[lang]) {
+198 |  				try {
+199 |  					await import(`prismjs/components/prism-\${lang}.js`);
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+200 |  				} catch (e) {
+201 |  					console.warn(`Failed to load PrismJS language component: \${lang}`, e);
+The above dynamic import cannot be analyzed by Vite.
+See https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations for supported dynamic import formats. If this is intended to be left as-is, you can use the /* @vite-ignore */ comment inside the import() call to suppress this warning.
+
+  Plugin: vite:import-analysis
+  File: /app/src/blocks/Code.js
+10:53:22 AM [vite] (client) ✨ new dependencies optimized: dompurify, lucide, prismjs
+10:53:59 AM [vite] (client) page reload src/blocks/Code.js
+10:54:39 AM [vite] (client) warning:
+/app/src/blocks/Code.js
+197 |  			if (!this.Prism.languages[lang]) {
+198 |  				try {
+199 |  					await import(`prismjs/components/prism-\${lang}.js`);
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+200 |  				} catch (e) {
+201 |  					console.warn(`Failed to load PrismJS language component: \${lang}`, e);
+The above dynamic import cannot be analyzed by Vite.
+See https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations for supported dynamic import formats. If this is intended to be left as-is, you can use the /* @vite-ignore */ comment inside the import() call to suppress this warning.
+
+  Plugin: vite:import-analysis
+  File: /app/src/blocks/Code.js
