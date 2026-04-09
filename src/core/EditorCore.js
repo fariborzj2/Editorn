@@ -1,3 +1,4 @@
+import { DirectionManager } from '../utils/DirectionManager.js';
 import { BlockManager } from './BlockManager.js';
 import { Renderer } from './Renderer.js';
 import { PluginManager } from './PluginManager.js';
@@ -9,6 +10,7 @@ export class EditorCore {
   constructor(el, config = {}) {
     this.config = Object.assign({
       data: { blocks: [] },
+      direction: 'auto',
       onChange: null
     }, config);
 
@@ -40,6 +42,7 @@ export class EditorCore {
     this.pasteManager = new PasteManager(this);
     this.historyManager = new HistoryManager(this);
     this.dragDropManager = new DragDropManager(this);
+    this.directionManager = new DirectionManager(this.config.direction);
 
     // Initial data rendering is deferred until extensions are loaded.
     // It should be explicitly called.

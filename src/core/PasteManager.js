@@ -119,6 +119,9 @@ export class PasteManager {
       const currentBlockIndex = this.editor.findActiveBlockIndex();
       if (currentBlockIndex !== -1) {
           const currentBlock = this.editor.blockManager.getBlocks()[currentBlockIndex];
+          if (this.editor.directionManager) {
+             this.editor.directionManager.applyToElement(currentBlock.element, currentBlock.element.innerText || currentBlock.element.textContent);
+          }
           if (currentBlock.instance.data) {
               currentBlock.instance.data.text = currentBlock.element.innerHTML;
           }

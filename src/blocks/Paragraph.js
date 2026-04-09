@@ -21,9 +21,16 @@ export class Paragraph {
       if (this.wrapper.innerHTML === '') {
         this.wrapper.innerHTML = '<br>';
       }
+            if (this.api && this.api.directionManager) {
+        this.api.directionManager.applyToElement(this.wrapper, this.wrapper.innerText || this.wrapper.textContent);
+      }
       this.api.triggerChange();
     });
 
+
+    if (this.api && this.api.directionManager) {
+      this.api.directionManager.applyToElement(this.wrapper, this.wrapper.innerText || this.wrapper.textContent);
+    }
     return this.wrapper;
   }
 
