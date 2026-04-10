@@ -1,4 +1,4 @@
-import { generateId } from '../../utils/IdGenerator.js';
+import { IdGenerator } from '../../utils/IdGenerator.js';
 
 export class EditorState {
   constructor(doc, selection = null) {
@@ -21,13 +21,13 @@ export class EditorState {
 
   static createEmpty() {
     return new EditorState({
-      id: generateId(),
+      id: IdGenerator.generate(),
       type: 'doc',
       children: [
         {
-          id: generateId(),
+          id: IdGenerator.generate(),
           type: 'paragraph',
-          children: [{ id: generateId(), type: 'text', text: '', marks: [] }]
+          children: [{ id: IdGenerator.generate(), type: 'text', text: '', marks: [] }]
         }
       ]
     });
@@ -39,16 +39,16 @@ export class EditorState {
     }
 
     const doc = {
-        id: generateId(),
+        id: IdGenerator.generate(),
         type: 'doc',
         children: data.blocks.map(b => {
-            const blockId = b.id || generateId();
+            const blockId = b.id || IdGenerator.generate();
             if (b.type === 'code') {
                 return {
                     id: blockId,
                     type: 'code',
                     data: { language: b.data?.language },
-                    children: [{ id: generateId(), type: 'text', text: b.data?.code || '', marks: [] }]
+                    children: [{ id: IdGenerator.generate(), type: 'text', text: b.data?.code || '', marks: [] }]
                 };
             }
 
@@ -56,7 +56,7 @@ export class EditorState {
                 id: blockId,
                 type: b.type,
                 data: b.data,
-                children: [{ id: generateId(), type: 'text', text: b.data?.text || '', marks: [] }]
+                children: [{ id: IdGenerator.generate(), type: 'text', text: b.data?.text || '', marks: [] }]
             };
         })
     };

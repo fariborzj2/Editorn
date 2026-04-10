@@ -1,6 +1,6 @@
 import { TransactionTypes } from './Transaction.js';
 import { SelectionModel } from './SelectionModel.js';
-import { generateId } from '../../utils/IdGenerator.js';
+import { IdGenerator } from '../../utils/IdGenerator.js';
 
 export function reducer(state, transaction) {
   const newState = state.clone();
@@ -164,20 +164,20 @@ export function reducer(state, transaction) {
 
         textNode.text = beforeText;
 
-        const newChildNode = { id: generateId(), type: 'text', text: afterText, marks: [...(textNode.marks || [])] };
+        const newChildNode = { id: IdGenerator.generate(), type: 'text', text: afterText, marks: [...(textNode.marks || [])] };
         nextState.nodeMap.set(newChildNode.id, newChildNode);
 
         const childrenToMove = [newChildNode, ...parentBlock.children.slice(childIndex + 1)];
         parentBlock.children = parentBlock.children.slice(0, childIndex + 1);
 
-        const emptyNode = { id: generateId(), type: 'text', text: '', marks: [] };
+        const emptyNode = { id: IdGenerator.generate(), type: 'text', text: '', marks: [] };
         if (childrenToMove.length === 0) {
             childrenToMove.push(emptyNode);
             nextState.nodeMap.set(emptyNode.id, emptyNode);
         }
 
         const newBlock = {
-            id: generateId(),
+            id: IdGenerator.generate(),
             type: 'paragraph',
             children: childrenToMove
         };
@@ -209,22 +209,22 @@ export function reducer(state, transaction) {
         const oldBlock = newState.doc.children[blockIndex];
         // Clean old inline nodes from nodeMap (simplification)
 
-        const emptyTextNode = { id: generateId(), type: 'text', text: '', marks: [] };
+        const emptyTextNode = { id: IdGenerator.generate(), type: 'text', text: '', marks: [] };
         newState.nodeMap.set(emptyTextNode.id, emptyTextNode);
 
         let newChildren = [emptyTextNode];
         if (newType === 'code') {
-           const codeText = { id: generateId(), type: 'text', text: newData.code || '', marks: [] };
+           const codeText = { id: IdGenerator.generate(), type: 'text', text: newData.code || '', marks: [] };
            newChildren = [codeText];
            newState.nodeMap.set(codeText.id, codeText);
         } else if (newData.text) {
-           const inlineText = { id: generateId(), type: 'text', text: newData.text, marks: [] };
+           const inlineText = { id: IdGenerator.generate(), type: 'text', text: newData.text, marks: [] };
            newChildren = [inlineText];
            newState.nodeMap.set(inlineText.id, inlineText);
         }
 
         const newBlock = {
-            id: generateId(),
+            id: IdGenerator.generate(),
             type: newType,
             data: newData,
             children: newChildren
@@ -387,7 +387,7 @@ function normalizeTree(state) {
             }
         }
         if (block.children.length === 0) {
-            const empty = { id: generateId(), type: 'text', text: '', marks: [] };
+            const empty = { id: IdGenerator.generate(), type: 'text', text: '', marks: [] };
             block.children.push(empty);
             state.nodeMap.set(empty.id, empty);
         }
@@ -397,8 +397,8 @@ function normalizeTree(state) {
 
 function ensureInvariant(state) {
     if (state.doc.children.length === 0) {
-        const emptyText = { id: generateId(), type: 'text', text: '', marks: [] };
-        const emptyBlock = { id: generateId(), type: 'paragraph', children: [emptyText] };
+        const emptyText = { id: IdGenerator.generate(), type: 'text', text: '', marks: [] };
+        const emptyBlock = { id: IdGenerator.generate(), type: 'paragraph', children: [emptyText] };
         state.doc.children.push(emptyBlock);
         state.nodeMap.set(emptyText.id, emptyText);
         state.nodeMap.set(emptyBlock.id, emptyBlock);
