@@ -201,9 +201,26 @@ export class Code {
       // Load specific language if not already loaded (html, css, js are usually bundled)
       if (!this.Prism.languages[lang]) {
         try {
-          await import(/* @vite-ignore */ `prismjs/components/prism-${lang}.js`);
+          // Dynamic imports with template literals do not work nicely with Vite/Rollup.
+          // Using a static map for the supported languages.
+          const loadLang = async (l) => {
+             switch (l) {
+                case 'python': return await import('prismjs/components/prism-python.js');
+                case 'java': return await import('prismjs/components/prism-java.js');
+                case 'c': return await import('prismjs/components/prism-c.js');
+                case 'cpp': return await import('prismjs/components/prism-cpp.js');
+                case 'csharp': return await import('prismjs/components/prism-csharp.js');
+                case 'php': return await import('prismjs/components/prism-php.js');
+                case 'sql': return await import('prismjs/components/prism-sql.js');
+                case 'bash': return await import('prismjs/components/prism-bash.js');
+                case 'json': return await import('prismjs/components/prism-json.js');
+                case 'typescript': return await import('prismjs/components/prism-typescript.js');
+                default: return null;
+             }
+          };
+          await loadLang(lang);
         } catch (e) {
-          console.warn(`Failed to load PrismJS language component: \${lang}`, e);
+          console.warn(`Failed to load PrismJS language component: ${lang}`, e);
         }
       }
 
