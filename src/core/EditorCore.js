@@ -1,11 +1,17 @@
 import { I18n } from '../utils/I18n.js';
 import { DirectionManager } from '../utils/DirectionManager.js';
 import { BlockManager } from './BlockManager.js';
-import { Renderer } from './Renderer.js';
+// Replace Renderer with new DOMRenderer
+import { DOMRenderer } from './engine/DOMRenderer.js';
 import { PluginManager } from './PluginManager.js';
 import { PasteManager } from './PasteManager.js';
 import { HistoryManager } from './HistoryManager.js';
 import { DragDropManager } from './DragDropManager.js';
+
+// Engine imports
+import { EditorEngine } from './engine/index.js';
+import { Transaction, TransactionTypes } from './engine/Transaction.js';
+import { InputPipeline } from './engine/InputPipeline.js';
 
 export class EditorCore {
   constructor(el, config = {}) {
@@ -23,11 +29,7 @@ export class EditorCore {
       return;
     }
 
-    // Storage for new extension instances
     this._activeExtensions = [];
-
-    // We will leave the plugin manager for backward compatibility if needed,
-    // but its role is significantly reduced.
     this.pluginManager = new PluginManager(this);
 
     this.init();
@@ -39,7 +41,6 @@ export class EditorCore {
     this.container.className = 'editorn-container';
     this.el.appendChild(this.container);
 
-    this.renderer = new Renderer(this.container);
     this.blockManager = new BlockManager(this);
     this.pasteManager = new PasteManager(this);
     this.historyManager = new HistoryManager(this);
@@ -47,177 +48,36 @@ export class EditorCore {
     this.directionManager = new DirectionManager(this.config.direction);
     this.i18n = new I18n(this.config.lang);
 
-    // Initial data rendering is deferred until extensions are loaded.
-    // It should be explicitly called.
+    // Initialize the new Engine
+    this.engine = new EditorEngine(this.config.data, (state) => {
+       this.renderer.render(state);
+       this.triggerChange();
+    });
 
-    // Listen to container events to handle block creation (Enter key)
-    this.container.addEventListener('keydown', (e) => this.handleGlobalKeydown(e));
   }
 
   renderInitialData() {
-    const blocks = this.config.data && this.config.data.blocks ? this.config.data.blocks : [];
-    if (blocks && blocks.length > 0) {
-      blocks.forEach(blockData => {
-        this.blockManager.insertBlock(blockData.type, blockData.data);
-      });
-    } else {
-      // Create an empty paragraph block by default
-      if (this.blockManager.blockClasses && this.blockManager.blockClasses['paragraph']) {
-          this.blockManager.insertBlock('paragraph');
-      }
-    }
+    // We pass blockClasses so the renderer knows what to instantiate
+    this.renderer = new DOMRenderer(this.container, this.blockManager.blockClasses);
 
-    this.renderer.renderBlocks(this.blockManager.getBlocks());
+    // Bind the input pipeline now that renderer is ready
+
+    this.inputPipeline = new InputPipeline(this.container, this.engine);
+
+    // Initial render
+    this.renderer.render(this.engine.getState());
   }
 
+  // The following methods are adapted for the new architecture, or stubbed to prevent old behavior
   handleGlobalKeydown(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const currentBlockIndex = this.findActiveBlockIndex();
-      if (currentBlockIndex === -1) return;
-
-      const currentBlock = this.blockManager.getBlocks()[currentBlockIndex];
-      const selection = window.getSelection();
-
-      let textAfterCursor = '';
-      let textBeforeCursor = currentBlock.element.innerHTML;
-
-      if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-
-        if (currentBlock.element.contains(range.startContainer)) {
-          const preRange = range.cloneRange();
-          preRange.selectNodeContents(currentBlock.element);
-          preRange.setEnd(range.startContainer, range.startOffset);
-
-          const postRange = range.cloneRange();
-          postRange.selectNodeContents(currentBlock.element);
-          postRange.setStart(range.endContainer, range.endOffset);
-
-          const postFragment = postRange.cloneContents();
-          const tempDiv = document.createElement('div');
-          tempDiv.appendChild(postFragment);
-          textAfterCursor = tempDiv.innerHTML;
-
-          const preFragment = preRange.cloneContents();
-          const tempDiv2 = document.createElement('div');
-          tempDiv2.appendChild(preFragment);
-          textBeforeCursor = tempDiv2.innerHTML;
-        }
-      }
-
-      currentBlock.element.innerHTML = textBeforeCursor || '<br>';
-      if (currentBlock.instance.data) {
-          currentBlock.instance.data.text = textBeforeCursor;
-      }
-
-      const newBlock = this.blockManager.insertBlock('paragraph', { text: textAfterCursor }, currentBlockIndex + 1);
-
-      this.renderer.renderBlocks(this.blockManager.getBlocks());
-
-      if (newBlock && newBlock.element) {
-        newBlock.element.focus();
-        const newSelection = window.getSelection();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(newBlock.element);
-        newRange.collapse(true);
-        newSelection.removeAllRanges();
-        newSelection.addRange(newRange);
-      }
-
-      this.triggerChange();
-    } else if (e.key === 'Backspace') {
-      const currentBlockIndex = this.findActiveBlockIndex();
-      if (currentBlockIndex <= 0) return;
-
-      const selection = window.getSelection();
-      if (selection.rangeCount > 0 && selection.isCollapsed) {
-        const range = selection.getRangeAt(0);
-        const currentBlock = this.blockManager.getBlocks()[currentBlockIndex];
-
-        const preRange = range.cloneRange();
-        preRange.selectNodeContents(currentBlock.element);
-        preRange.setEnd(range.startContainer, range.startOffset);
-
-        const textBeforeCursor = preRange.toString();
-
-        if (textBeforeCursor.length === 0) {
-          e.preventDefault();
-          const previousBlock = this.blockManager.getBlocks()[currentBlockIndex - 1];
-
-          if (previousBlock.instance.isMergeable === false) {
-             // If previous block is not mergeable, just delete current block if empty and focus previous
-             const currHtml = currentBlock.element.innerHTML === '<br>' ? '' : currentBlock.element.innerHTML;
-
-             // Optionally, if current block is not empty, do not delete it, but do we merge?
-             // Usually, if previous is not mergeable, we just focus the previous block, but the issue says "Backspace should simply delete the current empty block and place focus appropriately in the previous block"
-             if (currHtml.trim() === '') {
-                 this.blockManager.removeBlock(currentBlockIndex);
-                 this.renderer.renderBlocks(this.blockManager.getBlocks());
-                 // Focus previous
-                 if (previousBlock.element.contentEditable === "true") {
-                     previousBlock.element.focus();
-                 } else {
-                     const editable = previousBlock.element.querySelector('[contenteditable="true"], input, textarea');
-                     if (editable) editable.focus();
-                     else previousBlock.element.focus();
-                 }
-                 this.triggerChange();
-             } else {
-                 // Focus previous block end
-                 if (previousBlock.element.contentEditable === "true") {
-                     previousBlock.element.focus();
-                 } else {
-                     const editable = previousBlock.element.querySelector('[contenteditable="true"], input, textarea');
-                     if (editable) editable.focus();
-                     else previousBlock.element.focus();
-                 }
-             }
-          } else {
-              const markerId = 'cursor-marker-' + Date.now();
-              const marker = `<span id="${markerId}"></span>`;
-
-              const prevHtml = previousBlock.element.innerHTML === '<br>' ? '' : previousBlock.element.innerHTML;
-              const currHtml = currentBlock.element.innerHTML === '<br>' ? '' : currentBlock.element.innerHTML;
-
-              previousBlock.element.innerHTML = prevHtml + marker + currHtml;
-
-              if (previousBlock.element.innerHTML === '') {
-                  previousBlock.element.innerHTML = '<br>';
-              }
-
-              this.blockManager.removeBlock(currentBlockIndex);
-
-              this.renderer.renderBlocks(this.blockManager.getBlocks());
-
-              const markerEl = document.getElementById(markerId);
-              if (markerEl) {
-                const newSelection = window.getSelection();
-                const newRange = document.createRange();
-                newRange.setStartBefore(markerEl);
-                newRange.collapse(true);
-                newSelection.removeAllRanges();
-                newSelection.addRange(newRange);
-                markerEl.remove();
-              } else {
-                 previousBlock.element.focus();
-              }
-
-              if (previousBlock.instance.data) {
-                 previousBlock.instance.data.text = previousBlock.element.innerHTML;
-              }
-
-              this.triggerChange();
-          }
-        }
-      }
-    }
+      // Disabled. Handled by InputPipeline.
   }
 
   findActiveBlockIndex() {
-    const activeElement = document.activeElement;
-    const blocks = this.blockManager.getBlocks();
-    return blocks.findIndex(b => b.element === activeElement || b.element.contains(activeElement));
+      // Stub for legacy plugins
+      const state = this.engine.getState();
+      if (!state.selection) return -1;
+      return state.blocks.findIndex(b => b.id === state.selection.anchorBlock);
   }
 
   triggerChange() {
@@ -230,10 +90,12 @@ export class EditorCore {
   }
 
   save() {
+    // Pull from engine state, not DOM
+    const state = this.engine.getState();
     return {
       time: Date.now(),
       version: '1.0.0',
-      blocks: this.blockManager.save()
+      blocks: state.blocks.map(b => ({ type: b.type, data: b.data }))
     };
   }
 
