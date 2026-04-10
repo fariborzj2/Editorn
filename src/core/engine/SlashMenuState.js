@@ -1,11 +1,12 @@
 export class SlashMenuState {
     static derive(state) {
-        if (!state.selection || !state.selection.isCollapsed) return { active: false };
+        if (!state.selection || !state.selection.anchor || state.selection.anchor.path[0] !== state.selection.focus.path[0]) return { active: false };
 
-        const block = state.blocks.find(b => b.id === state.selection.anchorBlock);
+        const block = state.doc.children[state.selection.anchor.path[0]];
         if (!block || block.type !== 'paragraph') return { active: false };
 
-        const text = (block.data.text || '').slice(0, state.selection.anchorOffset);
+        const textNode = block.children[state.selection.anchor.path[1]];
+        const text = (textNode ? textNode.text : '').slice(0, state.selection.anchor.offset);
 
         // Match a slash preceded by start of line or space, followed by alphanumeric query
         const match = text.match(/(?:^|\s)\/([a-zA-Z0-9]*)$/);
@@ -16,7 +17,7 @@ export class SlashMenuState {
                 query: match[1],
                 position: {
                     blockId: block.id,
-                    offset: state.selection.anchorOffset
+                    offset: state.selection.anchor.offset
                 }
             };
         }

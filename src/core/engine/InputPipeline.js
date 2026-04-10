@@ -7,7 +7,6 @@ export class InputPipeline {
 
     this.container.addEventListener('beforeinput', this.handleBeforeInput.bind(this));
     this.container.addEventListener('keydown', this.handleKeydown.bind(this));
-    // Additional listeners (paste, composition) would be registered here
   }
 
   handleBeforeInput(e) {
@@ -16,8 +15,7 @@ export class InputPipeline {
     this.syncSelection();
 
     if (e.inputType === 'insertText' || e.inputType === 'insertReplacementText') {
-      // Escape HTML entities to prevent XSS
-      const safeText = e.data ? e.data.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+      const safeText = e.data || '';
       this.engine.dispatch(new Transaction(TransactionTypes.INSERT_TEXT, { text: safeText }));
     } else if (e.inputType === 'insertParagraph') {
       this.engine.dispatch(new Transaction(TransactionTypes.SPLIT_BLOCK));
@@ -25,11 +23,14 @@ export class InputPipeline {
       this.engine.dispatch(new Transaction(TransactionTypes.DELETE_RANGE, { direction: 'backward' }));
     } else if (e.inputType === 'deleteContentForward') {
       this.engine.dispatch(new Transaction(TransactionTypes.DELETE_RANGE, { direction: 'forward' }));
+    } else if (e.inputType === 'formatBold') {
+        this.engine.dispatch(new Transaction('WRAP_MARK', { mark: 'bold' }));
+    } else if (e.inputType === 'formatItalic') {
+        this.engine.dispatch(new Transaction('WRAP_MARK', { mark: 'italic' }));
     }
   }
 
   handleKeydown(e) {
-    // Handling specific keydowns to bypass native behaviors where beforeinput falls short
     if (e.key === 'Backspace') {
       e.preventDefault();
       this.syncSelection();
@@ -42,12 +43,16 @@ export class InputPipeline {
       e.preventDefault();
       this.syncSelection();
       this.engine.dispatch(new Transaction(TransactionTypes.SPLIT_BLOCK));
+    } else if (e.ctrlKey && e.key === 'b') {
+        e.preventDefault();
+        this.syncSelection();
+        this.engine.dispatch(new Transaction('WRAP_MARK', { mark: 'bold' }));
+    } else if (e.ctrlKey && e.key === 'i') {
+        e.preventDefault();
+        this.syncSelection();
+        this.engine.dispatch(new Transaction('WRAP_MARK', { mark: 'italic' }));
     } else if (e.ctrlKey || e.metaKey) {
-        // e.g. Ctrl+A let browser handle selection, then we sync
         setTimeout(() => this.syncSelection(), 0);
-    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-        // Some browsers don't fire beforeinput reliably for all text
-        // E.g., handling regular characters in Code blocks natively
     }
   }
 
@@ -55,38 +60,40 @@ export class InputPipeline {
      const sel = window.getSelection();
      if (!sel.rangeCount) return;
 
-     // Find the block ID and offsets by walking the DOM from the native selection
-     // This is a simplified mapping. In a full implementation, you map DOM nodes to state block IDs.
-     const getBlockInfo = (node, offset) => {
+     const getPathInfo = (node, offset) => {
          let current = node;
-         while(current && !current.hasAttribute?.('data-block-id')) {
+         // Find child wrapper
+         while (current && !current.hasAttribute?.('data-cidx')) {
              current = current.parentElement;
          }
          if (!current) return null;
 
-         const blockId = current.getAttribute('data-block-id');
+         const cIdx = parseInt(current.getAttribute('data-cidx'), 10);
 
-         // Calculate text offset. This is highly simplified.
-         let textOffset = 0;
-         const walk = document.createTreeWalker(current, NodeFilter.SHOW_TEXT, null, false);
-         let tNode;
-         while(tNode = walk.nextNode()) {
-             if (tNode === node) {
-                 textOffset += offset;
-                 break;
-             }
-             textOffset += tNode.textContent.length;
+         // Find block wrapper
+         let blockEl = current;
+         while (blockEl && !blockEl.hasAttribute?.('data-bidx')) {
+             blockEl = blockEl.parentElement;
          }
-         return { blockId, offset: textOffset };
+         if (!blockEl) return null;
+
+         const bIdx = parseInt(blockEl.getAttribute('data-bidx'), 10);
+
+         // Calculate text offset within this specific child node
+         // Since our tree separates text nodes, offset is local to `node.textContent`
+         // We adjust if it's the zero-width space
+         let textOffset = offset;
+         if (node.textContent === '\uFEFF') textOffset = 0;
+
+         return { path: [bIdx, cIdx], offset: textOffset };
      };
 
-     const anchor = getBlockInfo(sel.anchorNode, sel.anchorOffset);
-     const focus = getBlockInfo(sel.focusNode, sel.focusOffset);
+     const anchor = getPathInfo(sel.anchorNode, sel.anchorOffset);
+     const focus = getPathInfo(sel.focusNode, sel.focusOffset);
 
      if (anchor && focus) {
          this.engine.dispatch(new Transaction(TransactionTypes.SET_SELECTION, {
-             anchorBlock: anchor.blockId, anchorOffset: anchor.offset,
-             focusBlock: focus.blockId, focusOffset: focus.offset
+             anchor, focus
          }));
      }
   }
