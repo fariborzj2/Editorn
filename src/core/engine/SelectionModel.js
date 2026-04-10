@@ -1,15 +1,38 @@
 export class SelectionModel {
   static normalize(state) {
-    if (!state.selection) return null;
+    if (!state.selection || !state.selection.anchor || !state.selection.focus) return null;
 
     const { anchor, focus } = state.selection;
+    if (!anchor.nodeId || !focus.nodeId) return null;
 
-    if (!anchor || !focus || !anchor.path || !focus.path) return null;
+    // We need to determine document order.
+    // We can do this by traversing the state tree.
+    let order = 0; // 0 = same, -1 = anchor first, 1 = focus first
 
-    const cmp = this.comparePoints(anchor, focus);
+    if (anchor.nodeId !== focus.nodeId) {
+        let found = null;
+        const traverse = (node) => {
+            if (found) return;
+            if (node.id === anchor.nodeId) {
+                found = 'anchor';
+                order = -1;
+            } else if (node.id === focus.nodeId) {
+                found = 'focus';
+                order = 1;
+            }
+            if (node.children) {
+                for (const child of node.children) {
+                    traverse(child);
+                }
+            }
+        };
+        traverse(state.doc);
+    } else {
+        order = anchor.offset - focus.offset;
+    }
 
     let start, end;
-    if (cmp <= 0) {
+    if (order <= 0) {
         start = anchor;
         end = focus;
     } else {
@@ -20,23 +43,7 @@ export class SelectionModel {
     return {
       start,
       end,
-      isCollapsed: cmp === 0
+      isCollapsed: order === 0
     };
-  }
-
-  static comparePoints(p1, p2) {
-      // p.path is [blockIndex, childIndex]
-      const [b1, c1] = p1.path;
-      const [b2, c2] = p2.path;
-
-      if (b1 !== b2) return b1 - b2;
-
-      // If same block, compare child index
-      if (c1 !== undefined && c2 !== undefined) {
-          if (c1 !== c2) return c1 - c2;
-      }
-
-      // If same child, compare offset
-      return p1.offset - p2.offset;
   }
 }
