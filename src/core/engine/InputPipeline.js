@@ -43,6 +43,16 @@ export class InputPipeline {
       e.preventDefault();
       this.syncSelection();
       this.engine.dispatch(new Transaction(TransactionTypes.SPLIT_BLOCK));
+    } else if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+            this.engine.redo();
+        } else {
+            this.engine.undo();
+        }
+    } else if (e.ctrlKey && e.key === 'y') {
+        e.preventDefault();
+        this.engine.redo();
     } else if (e.ctrlKey && e.key === 'b') {
         e.preventDefault();
         this.syncSelection();
