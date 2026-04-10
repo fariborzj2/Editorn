@@ -3,23 +3,33 @@ import { generateId } from '../../utils/IdGenerator.js';
 export class EditorState {
   constructor(doc, selection = null) {
     this.doc = doc; // Root document node
-    this.selection = selection; // { anchor: { path, offset }, focus: { path, offset } }
-    this.activeMarks = []; // Marks to apply to next typed text
+    this.selection = selection; // { anchor: { nodeId, offset }, focus: { nodeId, offset } }
+    this.nodeMap = new Map();
+    this.buildNodeMap(this.doc);
+  }
+
+  buildNodeMap(node) {
+      if (node.id) this.nodeMap.set(node.id, node);
+      if (node.children) {
+          node.children.forEach(child => this.buildNodeMap(child));
+      }
+  }
+
+  getNode(id) {
+      return this.nodeMap.get(id);
   }
 
   static createEmpty() {
     return new EditorState({
+      id: generateId(),
       type: 'doc',
       children: [
         {
           id: generateId(),
           type: 'paragraph',
-          children: [{ type: 'text', text: '', marks: [] }]
+          children: [{ id: generateId(), type: 'text', text: '', marks: [] }]
         }
       ]
-    }, {
-        anchor: { path: [0, 0], offset: 0 },
-        focus: { path: [0, 0], offset: 0 }
     });
   }
 
@@ -29,6 +39,7 @@ export class EditorState {
     }
 
     const doc = {
+        id: generateId(),
         type: 'doc',
         children: data.blocks.map(b => {
             const blockId = b.id || generateId();
@@ -37,27 +48,31 @@ export class EditorState {
                     id: blockId,
                     type: 'code',
                     data: { language: b.data?.language },
-                    children: [{ type: 'text', text: b.data?.code || '', marks: [] }]
+                    children: [{ id: generateId(), type: 'text', text: b.data?.code || '', marks: [] }]
                 };
             }
 
-            // For other blocks, we attempt to parse HTML to text nodes if migrating from old format
-            // In a pure implementation, the incoming data is already tree-shaped.
-            // For simplicity in this engine redesign, we wrap raw text.
             return {
                 id: blockId,
                 type: b.type,
-                data: b.data, // Preserve other metadata
-                children: [{ type: 'text', text: b.data?.text || '', marks: [] }]
+                data: b.data,
+                children: [{ id: generateId(), type: 'text', text: b.data?.text || '', marks: [] }]
             };
         })
     };
 
-    return new EditorState(doc, null);
+    // Default selection to start of first node
+    let firstTextNodeId = doc.children[0]?.children[0]?.id;
+    let selection = firstTextNodeId ? {
+        anchor: { nodeId: firstTextNodeId, offset: 0 },
+        focus: { nodeId: firstTextNodeId, offset: 0 }
+    } : null;
+
+    return new EditorState(doc, selection);
   }
 
   clone() {
-    // Deep clone the document tree
+    // Deep clone the document tree preserving IDs
     const cloneNode = (node) => {
         const cloned = { ...node };
         if (node.children) {

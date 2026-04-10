@@ -2,170 +2,209 @@ export class DOMRenderer {
     constructor(container, blockClasses) {
         this.container = container;
         this.blockClasses = blockClasses;
-        this.renderedBlocks = new Map();
+        this.renderedNodes = new Map(); // Map<nodeId, DOMElement | TextNode>
 
-        // Disable native spellcheck which can corrupt the DOM during fast typing
         this.container.spellcheck = false;
     }
 
     render(state) {
-        const currentIds = new Set(state.doc.children.map(b => b.id));
+        // We do a top down keyed diff using state.doc.children
 
-        for (const [id, el] of this.renderedBlocks.entries()) {
-            if (!currentIds.has(id)) {
-                el.wrapper.remove();
-                this.renderedBlocks.delete(id);
-            }
+        const nextBlockIds = new Set(state.doc.children.map(b => b.id));
+
+        // 1. Remove blocks that no longer exist
+        for (const [id, nodeData] of this.renderedNodes.entries()) {
+             if (nodeData.isBlock && !nextBlockIds.has(id)) {
+                 nodeData.wrapper.remove();
+                 this.renderedNodes.delete(id);
+                 // We should also delete child nodes from map, but let garbage collection / overwrite handle it for simplicity here
+             }
         }
 
+        // 2. Diff and patch blocks
         let currentDomIndex = 0;
-        state.doc.children.forEach((blockState, bIdx) => {
-            let rendered = this.renderedBlocks.get(blockState.id);
+        state.doc.children.forEach(blockState => {
+            let rendered = this.renderedBlocks(blockState.id);
 
             if (!rendered) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'editorn-block-wrapper';
-                wrapper.style.display = 'flex';
-
-                const dragHandle = document.createElement('div');
-                dragHandle.className = 'editorn-drag-handle';
-                dragHandle.innerHTML = '⋮⋮';
-                dragHandle.contentEditable = 'false';
-                wrapper.appendChild(dragHandle);
-
-                const el = document.createElement('div');
-                el.className = `editorn-block-${blockState.type}`;
-                el.setAttribute('data-block-id', blockState.id);
-                el.setAttribute('data-bidx', bIdx);
-
-                if (blockState.type !== 'code' && blockState.type !== 'image') {
-                    el.contentEditable = "true";
-                }
-
-                el.style.flex = '1';
-                wrapper.appendChild(el);
-
-                rendered = { wrapper, el, type: blockState.type, childNodesMap: new Map() };
-                this.renderedBlocks.set(blockState.id, rendered);
-
+                // Create Node
+                rendered = this.createBlockNode(blockState);
                 if (currentDomIndex < this.container.children.length) {
-                    this.container.insertBefore(wrapper, this.container.children[currentDomIndex]);
+                    this.container.insertBefore(rendered.wrapper, this.container.children[currentDomIndex]);
                 } else {
-                    this.container.appendChild(wrapper);
+                    this.container.appendChild(rendered.wrapper);
                 }
             } else {
+                // Move Node if necessary
                 if (this.container.children[currentDomIndex] !== rendered.wrapper) {
-                     this.container.insertBefore(rendered.wrapper, this.container.children[currentDomIndex]);
+                    this.container.insertBefore(rendered.wrapper, this.container.children[currentDomIndex]);
                 }
-                rendered.el.setAttribute('data-bidx', bIdx);
             }
 
-            this.renderBlockChildren(rendered, blockState);
+            // 3. Diff and patch inline children
+            this.patchChildren(rendered, blockState);
+
             currentDomIndex++;
         });
 
+        // 4. Restore Cursor securely
         if (state.selection) {
              this.restoreSelection(state);
         }
     }
 
-    renderBlockChildren(rendered, blockState) {
+    renderedBlocks(id) {
+        const node = this.renderedNodes.get(id);
+        return node && node.isBlock ? node : null;
+    }
+
+    createBlockNode(blockState) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'editorn-block-wrapper';
+        wrapper.style.display = 'flex';
+
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'editorn-drag-handle';
+        dragHandle.innerHTML = '⋮⋮';
+        dragHandle.contentEditable = 'false';
+        wrapper.appendChild(dragHandle);
+
+        const el = document.createElement('div');
+        el.className = `editorn-block-${blockState.type}`;
+        el.setAttribute('data-node-id', blockState.id);
+
+        if (blockState.type !== 'code' && blockState.type !== 'image') {
+            el.contentEditable = "true";
+        }
+
+        el.style.flex = '1';
+        wrapper.appendChild(el);
+
+        const nodeData = { isBlock: true, wrapper, el, type: blockState.type };
+        this.renderedNodes.set(blockState.id, nodeData);
+        return nodeData;
+    }
+
+    patchChildren(renderedBlock, blockState) {
         if (blockState.type === 'code') {
-             const ta = rendered.el.querySelector('textarea');
-             const text = blockState.children[0]?.text || '';
-             if (ta) {
-                  if (ta.value !== text) ta.value = text;
-             } else {
-                  rendered.el.innerHTML = `<textarea style="width:100%">${text}</textarea>`;
+             const textState = blockState.children[0];
+             let ta = renderedBlock.el.querySelector('textarea');
+             if (!ta) {
+                 renderedBlock.el.innerHTML = '';
+                 ta = document.createElement('textarea');
+                 ta.style.width = '100%';
+                 ta.setAttribute('data-node-id', textState.id);
+                 renderedBlock.el.appendChild(ta);
+                 this.renderedNodes.set(textState.id, { isBlock: false, textNode: ta });
              }
+             if (ta.value !== textState.text) ta.value = textState.text;
              return;
         }
 
-        const el = rendered.el;
-        let childDomIndex = 0;
+        const el = renderedBlock.el;
+        const nextChildIds = new Set(blockState.children.map(c => c.id));
 
-        // Basic diffing for inline tree
-        blockState.children.forEach((childNode, cIdx) => {
-            // For simplicity in diffing without unique IDs on text nodes, we map by index
-            let domChild = el.childNodes[childDomIndex];
-
-            // Create proper DOM structure based on marks
-            const createNode = () => {
-                let node = document.createTextNode(childNode.text || '\uFEFF'); // zero width space for empty nodes to keep height
-                if (childNode.text === '') node.textContent = '\uFEFF';
-
-                if (childNode.marks && childNode.marks.length > 0) {
-                    let wrapper = document.createElement('span');
-                    childNode.marks.forEach(mark => {
-                        if (mark === 'bold') wrapper.style.fontWeight = 'bold';
-                        if (mark === 'italic') wrapper.style.fontStyle = 'italic';
-                        if (mark === 'underline') wrapper.style.textDecoration = 'underline';
-                    });
-                    wrapper.appendChild(node);
-                    wrapper.setAttribute('data-cidx', cIdx);
-                    return { element: wrapper, textNode: node };
-                }
-
-                // Need a wrapper anyway to attach data-cidx for selection mapping
-                let wrapper = document.createElement('span');
-                wrapper.appendChild(node);
-                wrapper.setAttribute('data-cidx', cIdx);
-                return { element: wrapper, textNode: node };
-            };
-
-            if (!domChild) {
-                const { element, textNode } = createNode();
-                el.appendChild(element);
-                rendered.childNodesMap.set(cIdx, textNode);
-            } else {
-                // To keep it robust, we just replace if marks changed, otherwise update text
-                // Check if current DOM node has same marks. (Simplified check by recreating)
-                // In a true engine, we diff the marks array carefully.
-                const { element, textNode } = createNode();
-                el.replaceChild(element, domChild);
-                rendered.childNodesMap.set(cIdx, textNode);
+        // Remove old children explicitly from DOM if not in state
+        Array.from(el.childNodes).forEach(childDom => {
+            const id = childDom.getAttribute('data-node-id');
+            if (id && !nextChildIds.has(id)) {
+                el.removeChild(childDom);
+                this.renderedNodes.delete(id);
             }
-            childDomIndex++;
         });
 
-        // Remove excess children
-        while (el.childNodes.length > blockState.children.length) {
-            el.removeChild(el.lastChild);
-        }
+        let childDomIndex = 0;
+        blockState.children.forEach(textState => {
+            let renderedChild = this.renderedNodes.get(textState.id);
+
+            const createChild = () => {
+                const wrapper = document.createElement('span');
+                wrapper.setAttribute('data-node-id', textState.id);
+
+                const textVal = textState.text === '' ? '\uFEFF' : textState.text;
+                const textNode = document.createTextNode(textVal);
+                wrapper.appendChild(textNode);
+
+                this.applyMarks(wrapper, textState.marks);
+                return { isBlock: false, wrapper, textNode, marks: [...(textState.marks||[])] };
+            };
+
+            if (!renderedChild) {
+                // Insert
+                renderedChild = createChild();
+                if (childDomIndex < el.childNodes.length) {
+                    el.insertBefore(renderedChild.wrapper, el.childNodes[childDomIndex]);
+                } else {
+                    el.appendChild(renderedChild.wrapper);
+                }
+                this.renderedNodes.set(textState.id, renderedChild);
+            } else {
+                // Move
+                if (el.childNodes[childDomIndex] !== renderedChild.wrapper) {
+                    el.insertBefore(renderedChild.wrapper, el.childNodes[childDomIndex]);
+                }
+
+                // Update Text
+                const expectedText = textState.text === '' ? '\uFEFF' : textState.text;
+                if (renderedChild.textNode.textContent !== expectedText) {
+                    renderedChild.textNode.textContent = expectedText;
+                }
+
+                // Update Marks (if changed)
+                if (JSON.stringify(renderedChild.marks.sort()) !== JSON.stringify([...(textState.marks||[])].sort())) {
+                    this.applyMarks(renderedChild.wrapper, textState.marks);
+                    renderedChild.marks = [...(textState.marks||[])];
+                }
+            }
+
+            childDomIndex++;
+        });
+    }
+
+    applyMarks(el, marks) {
+        el.style.fontWeight = 'normal';
+        el.style.fontStyle = 'normal';
+        el.style.textDecoration = 'none';
+
+        if (!marks) return;
+        if (marks.includes('bold')) el.style.fontWeight = 'bold';
+        if (marks.includes('italic')) el.style.fontStyle = 'italic';
+        if (marks.includes('underline')) el.style.textDecoration = 'underline';
     }
 
     restoreSelection(state) {
-        const selState = state.selection;
-        if (!selState || !selState.anchor || !selState.focus) return;
+        const { anchor, focus } = state.selection;
+        if (!anchor || !focus || !anchor.nodeId || !focus.nodeId) return;
 
         try {
-            const anchorBlockState = state.doc.children[selState.anchor.path[0]];
-            const focusBlockState = state.doc.children[selState.focus.path[0]];
-            if (!anchorBlockState || !focusBlockState) return;
+            const anchorNodeData = this.renderedNodes.get(anchor.nodeId);
+            const focusNodeData = this.renderedNodes.get(focus.nodeId);
 
-            const anchorRendered = this.renderedBlocks.get(anchorBlockState.id);
-            const focusRendered = this.renderedBlocks.get(focusBlockState.id);
-            if (!anchorRendered || !focusRendered) return;
-
-            const anchorTextNode = anchorRendered.childNodesMap.get(selState.anchor.path[1]);
-            const focusTextNode = focusRendered.childNodesMap.get(selState.focus.path[1]);
-
-            if (!anchorTextNode || !focusTextNode) return;
+            if (!anchorNodeData || !focusNodeData) return;
 
             const sel = window.getSelection();
             const range = document.createRange();
 
-            // Handle zero width space offset adjustment
-            const aOffset = anchorTextNode.textContent === '\uFEFF' ? 0 : selState.anchor.offset;
-            const fOffset = focusTextNode.textContent === '\uFEFF' ? 0 : selState.focus.offset;
+            // Handle textarea special case
+            if (anchorNodeData.textNode instanceof HTMLTextAreaElement) {
+                anchorNodeData.textNode.focus();
+                anchorNodeData.textNode.setSelectionRange(anchor.offset, focus.offset);
+                return;
+            }
 
-            range.setStart(anchorTextNode, Math.min(aOffset, anchorTextNode.length));
-            range.setEnd(focusTextNode, Math.min(fOffset, focusTextNode.length));
+            const aTextNode = anchorNodeData.textNode;
+            const fTextNode = focusNodeData.textNode;
+
+            const aOffset = aTextNode.textContent === '\uFEFF' ? 0 : Math.min(anchor.offset, aTextNode.length);
+            const fOffset = fTextNode.textContent === '\uFEFF' ? 0 : Math.min(focus.offset, fTextNode.length);
+
+            range.setStart(aTextNode, aOffset);
+            range.setEnd(fTextNode, fOffset);
 
             sel.removeAllRanges();
             sel.addRange(range);
         } catch(e) {
-            // Ignore temporary selection errors during fast typing diffs
+            // Safe fallback during highly destructive concurrent edits
         }
     }
 }

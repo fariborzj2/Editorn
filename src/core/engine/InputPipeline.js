@@ -62,30 +62,20 @@ export class InputPipeline {
 
      const getPathInfo = (node, offset) => {
          let current = node;
-         // Find child wrapper
-         while (current && !current.hasAttribute?.('data-cidx')) {
+         // Find nearest node with stable id
+         while (current && !current.hasAttribute?.('data-node-id')) {
              current = current.parentElement;
          }
          if (!current) return null;
 
-         const cIdx = parseInt(current.getAttribute('data-cidx'), 10);
+         const nodeId = current.getAttribute('data-node-id');
 
-         // Find block wrapper
-         let blockEl = current;
-         while (blockEl && !blockEl.hasAttribute?.('data-bidx')) {
-             blockEl = blockEl.parentElement;
-         }
-         if (!blockEl) return null;
-
-         const bIdx = parseInt(blockEl.getAttribute('data-bidx'), 10);
-
-         // Calculate text offset within this specific child node
-         // Since our tree separates text nodes, offset is local to `node.textContent`
-         // We adjust if it's the zero-width space
          let textOffset = offset;
          if (node.textContent === '\uFEFF') textOffset = 0;
 
-         return { path: [bIdx, cIdx], offset: textOffset };
+         // If we matched the block wrapper (e.g. empty paragraph) but we need the inline node ID,
+         // We might need to map it via DOM mapping logic. For now assume inline nodes have data-node-id.
+         return { nodeId, offset: textOffset };
      };
 
      const anchor = getPathInfo(sel.anchorNode, sel.anchorOffset);
