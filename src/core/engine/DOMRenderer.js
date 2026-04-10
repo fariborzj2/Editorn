@@ -1,16 +1,16 @@
-// A simple virtual DOM to real DOM patcher
 export class DOMRenderer {
     constructor(container, blockClasses) {
         this.container = container;
         this.blockClasses = blockClasses;
         this.renderedBlocks = new Map();
+
+        // Disable native spellcheck which can corrupt the DOM during fast typing
+        this.container.spellcheck = false;
     }
 
     render(state) {
-        // Iterate through state blocks
-        const currentIds = new Set(state.blocks.map(b => b.id));
+        const currentIds = new Set(state.doc.children.map(b => b.id));
 
-        // Remove blocks that are no longer in state
         for (const [id, el] of this.renderedBlocks.entries()) {
             if (!currentIds.has(id)) {
                 el.wrapper.remove();
@@ -18,18 +18,11 @@ export class DOMRenderer {
             }
         }
 
-        // Ensure DOM matches state order and content
         let currentDomIndex = 0;
-        state.blocks.forEach((blockState, index) => {
+        state.doc.children.forEach((blockState, bIdx) => {
             let rendered = this.renderedBlocks.get(blockState.id);
 
             if (!rendered) {
-                // Create new
-                const BlockClass = this.blockClasses[blockState.type];
-                if (!BlockClass) return;
-
-                // For this demo, we bypass the full block lifecycle and just create the element
-                // In a full implementation, you'd integrate with the BlockManager/ExtensionRegistry properly.
                 const wrapper = document.createElement('div');
                 wrapper.className = 'editorn-block-wrapper';
                 wrapper.style.display = 'flex';
@@ -37,13 +30,14 @@ export class DOMRenderer {
                 const dragHandle = document.createElement('div');
                 dragHandle.className = 'editorn-drag-handle';
                 dragHandle.innerHTML = '⋮⋮';
+                dragHandle.contentEditable = 'false';
                 wrapper.appendChild(dragHandle);
 
                 const el = document.createElement('div');
                 el.className = `editorn-block-${blockState.type}`;
                 el.setAttribute('data-block-id', blockState.id);
-                // Important: Since we intercept beforeinput, we can keep contenteditable true for text blocks
-                // to allow native selection and IME, but we intercept mutations.
+                el.setAttribute('data-bidx', bIdx);
+
                 if (blockState.type !== 'code' && blockState.type !== 'image') {
                     el.contentEditable = "true";
                 }
@@ -51,87 +45,127 @@ export class DOMRenderer {
                 el.style.flex = '1';
                 wrapper.appendChild(el);
 
-                rendered = { wrapper, el, type: blockState.type, lastText: '' };
+                rendered = { wrapper, el, type: blockState.type, childNodesMap: new Map() };
                 this.renderedBlocks.set(blockState.id, rendered);
 
-                // Append or insert before
                 if (currentDomIndex < this.container.children.length) {
                     this.container.insertBefore(wrapper, this.container.children[currentDomIndex]);
                 } else {
                     this.container.appendChild(wrapper);
                 }
             } else {
-                // Reorder if necessary
                 if (this.container.children[currentDomIndex] !== rendered.wrapper) {
                      this.container.insertBefore(rendered.wrapper, this.container.children[currentDomIndex]);
                 }
+                rendered.el.setAttribute('data-bidx', bIdx);
             }
 
-            // Sync content conditionally to avoid breaking IME
-            if (rendered.type === 'code') {
-                const ta = rendered.el.querySelector('textarea');
-                if (ta) {
-                     if (ta.value !== blockState.data.code) {
-                         ta.value = blockState.data.code || '';
-                     }
-                } else {
-                     rendered.el.innerHTML = `<textarea style="width:100%">${blockState.data.code || ''}</textarea>`;
-                }
-            } else {
-                 // Compare before setting innerHTML to avoid destroying DOM nodes for ongoing IME
-                 if (rendered.lastText !== blockState.data.text) {
-                     // VERY rudimentary innerHTML update, should ideally patch DOM nodes
-                     rendered.el.innerHTML = blockState.data.text || '<br>';
-                     rendered.lastText = blockState.data.text;
-                 }
-            }
-
+            this.renderBlockChildren(rendered, blockState);
             currentDomIndex++;
         });
 
-        // Restore selection if state has it
         if (state.selection) {
-             this.restoreSelection(state.selection);
+             this.restoreSelection(state);
         }
     }
 
-    restoreSelection(selState) {
-        const anchorRendered = this.renderedBlocks.get(selState.anchorBlock);
-        const focusRendered = this.renderedBlocks.get(selState.focusBlock);
+    renderBlockChildren(rendered, blockState) {
+        if (blockState.type === 'code') {
+             const ta = rendered.el.querySelector('textarea');
+             const text = blockState.children[0]?.text || '';
+             if (ta) {
+                  if (ta.value !== text) ta.value = text;
+             } else {
+                  rendered.el.innerHTML = `<textarea style="width:100%">${text}</textarea>`;
+             }
+             return;
+        }
 
-        if (!anchorRendered || !focusRendered) return;
+        const el = rendered.el;
+        let childDomIndex = 0;
 
-        const setRangeOffset = (el, offset) => {
-            let currentOffset = 0;
-            const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
-            let node;
-            while (node = walk.nextNode()) {
-                if (currentOffset + node.textContent.length >= offset) {
-                    return { node, offset: offset - currentOffset };
+        // Basic diffing for inline tree
+        blockState.children.forEach((childNode, cIdx) => {
+            // For simplicity in diffing without unique IDs on text nodes, we map by index
+            let domChild = el.childNodes[childDomIndex];
+
+            // Create proper DOM structure based on marks
+            const createNode = () => {
+                let node = document.createTextNode(childNode.text || '\uFEFF'); // zero width space for empty nodes to keep height
+                if (childNode.text === '') node.textContent = '\uFEFF';
+
+                if (childNode.marks && childNode.marks.length > 0) {
+                    let wrapper = document.createElement('span');
+                    childNode.marks.forEach(mark => {
+                        if (mark === 'bold') wrapper.style.fontWeight = 'bold';
+                        if (mark === 'italic') wrapper.style.fontStyle = 'italic';
+                        if (mark === 'underline') wrapper.style.textDecoration = 'underline';
+                    });
+                    wrapper.appendChild(node);
+                    wrapper.setAttribute('data-cidx', cIdx);
+                    return { element: wrapper, textNode: node };
                 }
-                currentOffset += node.textContent.length;
+
+                // Need a wrapper anyway to attach data-cidx for selection mapping
+                let wrapper = document.createElement('span');
+                wrapper.appendChild(node);
+                wrapper.setAttribute('data-cidx', cIdx);
+                return { element: wrapper, textNode: node };
+            };
+
+            if (!domChild) {
+                const { element, textNode } = createNode();
+                el.appendChild(element);
+                rendered.childNodesMap.set(cIdx, textNode);
+            } else {
+                // To keep it robust, we just replace if marks changed, otherwise update text
+                // Check if current DOM node has same marks. (Simplified check by recreating)
+                // In a true engine, we diff the marks array carefully.
+                const { element, textNode } = createNode();
+                el.replaceChild(element, domChild);
+                rendered.childNodesMap.set(cIdx, textNode);
             }
-            return { node: el, offset: el.childNodes.length };
-        };
+            childDomIndex++;
+        });
+
+        // Remove excess children
+        while (el.childNodes.length > blockState.children.length) {
+            el.removeChild(el.lastChild);
+        }
+    }
+
+    restoreSelection(state) {
+        const selState = state.selection;
+        if (!selState || !selState.anchor || !selState.focus) return;
 
         try {
+            const anchorBlockState = state.doc.children[selState.anchor.path[0]];
+            const focusBlockState = state.doc.children[selState.focus.path[0]];
+            if (!anchorBlockState || !focusBlockState) return;
+
+            const anchorRendered = this.renderedBlocks.get(anchorBlockState.id);
+            const focusRendered = this.renderedBlocks.get(focusBlockState.id);
+            if (!anchorRendered || !focusRendered) return;
+
+            const anchorTextNode = anchorRendered.childNodesMap.get(selState.anchor.path[1]);
+            const focusTextNode = focusRendered.childNodesMap.get(selState.focus.path[1]);
+
+            if (!anchorTextNode || !focusTextNode) return;
+
             const sel = window.getSelection();
             const range = document.createRange();
 
-            const anchor = setRangeOffset(anchorRendered.el, selState.anchorOffset);
-            range.setStart(anchor.node, anchor.offset);
+            // Handle zero width space offset adjustment
+            const aOffset = anchorTextNode.textContent === '\uFEFF' ? 0 : selState.anchor.offset;
+            const fOffset = focusTextNode.textContent === '\uFEFF' ? 0 : selState.focus.offset;
 
-            if (selState.isCollapsed) {
-                range.collapse(true);
-            } else {
-                const focus = setRangeOffset(focusRendered.el, selState.focusOffset);
-                range.setEnd(focus.node, focus.offset);
-            }
+            range.setStart(anchorTextNode, Math.min(aOffset, anchorTextNode.length));
+            range.setEnd(focusTextNode, Math.min(fOffset, focusTextNode.length));
 
             sel.removeAllRanges();
             sel.addRange(range);
         } catch(e) {
-            // Ignore selection restoration errors during rapid typing
+            // Ignore temporary selection errors during fast typing diffs
         }
     }
 }

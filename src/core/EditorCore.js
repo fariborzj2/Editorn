@@ -77,7 +77,7 @@ export class EditorCore {
       // Stub for legacy plugins
       const state = this.engine.getState();
       if (!state.selection) return -1;
-      return state.blocks.findIndex(b => b.id === state.selection.anchorBlock);
+      return state.selection && state.selection.anchor ? state.selection.anchor.path[0] : -1;
   }
 
   triggerChange() {
@@ -95,7 +95,11 @@ export class EditorCore {
     return {
       time: Date.now(),
       version: '1.0.0',
-      blocks: state.blocks.map(b => ({ type: b.type, data: b.data }))
+      blocks: state.doc.children.map(b => ({
+        id: b.id,
+        type: b.type,
+        data: b.type === 'code' ? { code: b.children[0]?.text } : { text: b.children.map(c => c.text).join('') }
+      }))
     };
   }
 

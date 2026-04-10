@@ -20,26 +20,27 @@ export function reducer(state, transaction) {
       }
 
       const newRange = SelectionModel.normalize(nextState);
-      const blockIndex = nextState.blocks.findIndex(b => b.id === newRange.startBlockId);
-      if (blockIndex === -1) return nextState;
+      const [bIdx, cIdx] = newRange.start.path;
 
-      const block = nextState.blocks[blockIndex];
-      if (block.type !== 'code' && block.type !== 'paragraph' && block.type !== 'header') {
-        // If not a text block, we can't insert text directly, this is a simplification
-        return nextState;
+      const block = nextState.doc.children[bIdx];
+      if (!block || !block.children) return nextState;
+
+      // Ensure cIdx is valid, default to 0 if empty
+      const childIdx = cIdx !== undefined ? cIdx : 0;
+
+      if (!block.children[childIdx]) {
+          block.children[childIdx] = { type: 'text', text: '', marks: [] };
       }
 
-      const text = block.data.text || '';
+      const textNode = block.children[childIdx];
+      const offset = newRange.start.offset;
 
-      // We assume plain text offsets match the raw html string for this conceptual prototype.
-      // A robust engine requires an HTML-aware offset mapping or using DocumentFragment.
-      const newText = text.slice(0, newRange.startOffset) + transaction.payload.text + text.slice(newRange.startOffset);
+      textNode.text = textNode.text.slice(0, offset) + transaction.payload.text + textNode.text.slice(offset);
 
-      nextState.blocks[blockIndex].data.text = newText;
-      const newOffset = newRange.startOffset + transaction.payload.text.length;
+      const newOffset = offset + transaction.payload.text.length;
       nextState.selection = {
-        anchorBlock: block.id, anchorOffset: newOffset,
-        focusBlock: block.id, focusOffset: newOffset
+          anchor: { path: [bIdx, childIdx], offset: newOffset },
+          focus: { path: [bIdx, childIdx], offset: newOffset }
       };
 
       return nextState;
@@ -49,53 +50,67 @@ export function reducer(state, transaction) {
       if (!range) return newState;
 
       if (range.isCollapsed && transaction.payload.direction === 'backward') {
-        // Handle backspace when collapsed
-        if (range.startOffset > 0) {
-           const blockIndex = newState.blocks.findIndex(b => b.id === range.startBlockId);
-           const block = newState.blocks[blockIndex];
-           const text = block.data.text || '';
-           newState.blocks[blockIndex].data.text = text.slice(0, range.startOffset - 1) + text.slice(range.startOffset);
-           newState.selection = {
-               anchorBlock: block.id, anchorOffset: range.startOffset - 1,
-               focusBlock: block.id, focusOffset: range.startOffset - 1
-           };
-           return newState;
+        const [bIdx, cIdx] = range.start.path;
+        if (range.start.offset > 0) {
+            // Delete within current text node
+            const block = newState.doc.children[bIdx];
+            const textNode = block.children[cIdx];
+            textNode.text = textNode.text.slice(0, range.start.offset - 1) + textNode.text.slice(range.start.offset);
+
+            newState.selection = {
+                anchor: { path: [bIdx, cIdx], offset: range.start.offset - 1 },
+                focus: { path: [bIdx, cIdx], offset: range.start.offset - 1 }
+            };
+            return normalizeTree(newState);
         } else {
-           // Offset is 0, merge with previous block
-           const blockIndex = newState.blocks.findIndex(b => b.id === range.startBlockId);
-           if (blockIndex > 0) {
-               const prevBlock = newState.blocks[blockIndex - 1];
-               const currentBlock = newState.blocks[blockIndex];
+            // Offset is 0
+            if (cIdx > 0) {
+                // Delete previous text node's last character or merge
+                const block = newState.doc.children[bIdx];
+                const prevNode = block.children[cIdx - 1];
+                if (prevNode.text.length > 0) {
+                    prevNode.text = prevNode.text.slice(0, -1);
+                    newState.selection = {
+                        anchor: { path: [bIdx, cIdx - 1], offset: prevNode.text.length },
+                        focus: { path: [bIdx, cIdx - 1], offset: prevNode.text.length }
+                    };
+                }
+                return normalizeTree(newState);
+            } else if (bIdx > 0) {
+                // Merge with previous block
+                const prevBlock = newState.doc.children[bIdx - 1];
+                const currentBlock = newState.doc.children[bIdx];
 
-               // Complex block isolation: if prev or current is code/image, don't merge, just delete if empty
-               if (prevBlock.type === 'code' || currentBlock.type === 'code') {
-                   // if current is empty paragraph, just delete it
-                   if (currentBlock.type === 'paragraph' && (currentBlock.data.text || '') === '') {
-                       newState.blocks.splice(blockIndex, 1);
-                       newState.selection = {
-                           anchorBlock: prevBlock.id, anchorOffset: (prevBlock.data.text || '').length,
-                           focusBlock: prevBlock.id, focusOffset: (prevBlock.data.text || '').length
-                       };
-                   }
-                   return ensureInvariant(newState);
-               }
+                if (prevBlock.type === 'code' || currentBlock.type === 'code') {
+                    // Don't merge code blocks, just delete current if empty
+                    if (currentBlock.children.length === 1 && currentBlock.children[0].text === '') {
+                        newState.doc.children.splice(bIdx, 1);
+                        const lastChildIdx = prevBlock.children.length - 1;
+                        newState.selection = {
+                            anchor: { path: [bIdx - 1, lastChildIdx], offset: prevBlock.children[lastChildIdx].text.length },
+                            focus: { path: [bIdx - 1, lastChildIdx], offset: prevBlock.children[lastChildIdx].text.length }
+                        };
+                    }
+                    return ensureInvariant(newState);
+                }
 
-               const prevText = prevBlock.data.text || '';
-               const currentText = currentBlock.data.text || '';
+                const prevLastChildIdx = prevBlock.children.length - 1;
+                const prevLastChildLen = prevBlock.children[prevLastChildIdx].text.length;
 
-               newState.blocks[blockIndex - 1].data.text = prevText + currentText;
-               newState.blocks.splice(blockIndex, 1);
+                // Append children
+                prevBlock.children.push(...currentBlock.children);
+                newState.doc.children.splice(bIdx, 1);
 
-               newState.selection = {
-                   anchorBlock: prevBlock.id, anchorOffset: prevText.length,
-                   focusBlock: prevBlock.id, focusOffset: prevText.length
-               };
-               return newState;
-           }
-           return newState;
+                newState.selection = {
+                    anchor: { path: [bIdx - 1, prevLastChildIdx + 1], offset: 0 },
+                    focus: { path: [bIdx - 1, prevLastChildIdx + 1], offset: 0 }
+                };
+
+                return normalizeTree(newState);
+            }
         }
       } else if (!range.isCollapsed) {
-        return deleteRange(newState, range);
+          return normalizeTree(deleteRange(newState, range));
       }
       return newState;
     }
@@ -109,54 +124,79 @@ export function reducer(state, transaction) {
         }
 
         const newRange = SelectionModel.normalize(nextState);
-        const blockIndex = nextState.blocks.findIndex(b => b.id === newRange.startBlockId);
-        const block = nextState.blocks[blockIndex];
+        const [bIdx, cIdx] = newRange.start.path;
+        const offset = newRange.start.offset;
+
+        const block = nextState.doc.children[bIdx];
 
         if (block.type === 'code') {
-           // Newline inside code
-           const text = block.data.code || '';
-           block.data.code = text.slice(0, newRange.startOffset) + '\n' + text.slice(newRange.startOffset);
-           const newOffset = newRange.startOffset + 1;
+           const textNode = block.children[cIdx];
+           textNode.text = textNode.text.slice(0, offset) + '\n' + textNode.text.slice(offset);
            nextState.selection = {
-               anchorBlock: block.id, anchorOffset: newOffset,
-               focusBlock: block.id, focusOffset: newOffset
+               anchor: { path: [bIdx, cIdx], offset: offset + 1 },
+               focus: { path: [bIdx, cIdx], offset: offset + 1 }
            };
            return nextState;
         }
 
-        const text = block.data.text || '';
-        const beforeText = text.slice(0, newRange.startOffset);
-        const afterText = text.slice(newRange.startOffset);
+        const textNode = block.children[cIdx];
 
-        nextState.blocks[blockIndex].data.text = beforeText;
+        // Split text node
+        const beforeText = textNode.text.slice(0, offset);
+        const afterText = textNode.text.slice(offset);
+
+        textNode.text = beforeText;
+
+        // Create new text node for the rest
+        const newChildNode = { type: 'text', text: afterText, marks: [...(textNode.marks || [])] };
+
+        // Children to move to new block
+        const childrenToMove = [newChildNode, ...block.children.slice(cIdx + 1)];
+        block.children = block.children.slice(0, cIdx + 1);
 
         const newBlock = {
             id: generateId(),
             type: 'paragraph',
-            data: { text: afterText }
+            children: childrenToMove.length ? childrenToMove : [{ type: 'text', text: '', marks: [] }]
         };
 
-        nextState.blocks.splice(blockIndex + 1, 0, newBlock);
+        nextState.doc.children.splice(bIdx + 1, 0, newBlock);
+
         nextState.selection = {
-            anchorBlock: newBlock.id, anchorOffset: 0,
-            focusBlock: newBlock.id, focusOffset: 0
+            anchor: { path: [bIdx + 1, 0], offset: 0 },
+            focus: { path: [bIdx + 1, 0], offset: 0 }
         };
-        return nextState;
+
+        return normalizeTree(nextState);
     }
-    case TransactionTypes.REPLACE_BLOCK: {
-        const blockIndex = newState.blocks.findIndex(b => b.id === transaction.payload.blockId);
-        if (blockIndex === -1) return newState;
-        newState.blocks[blockIndex] = {
-            id: generateId(),
-            type: transaction.payload.newType,
-            data: transaction.payload.newData
-        };
-        // Reset selection to the start of new block
-        newState.selection = {
-            anchorBlock: newState.blocks[blockIndex].id, anchorOffset: 0,
-            focusBlock: newState.blocks[blockIndex].id, focusOffset: 0
-        };
-        return newState;
+    case 'WRAP_MARK': {
+        // Implement wrap mark on selection
+        const range = SelectionModel.normalize(newState);
+        if (!range || range.isCollapsed) return newState;
+
+        const mark = transaction.payload.mark;
+
+        // A full implementation requires splitting text nodes exactly at the boundaries,
+        // applying marks to the interior nodes, and merging.
+        // For this architecture proof, we apply to the whole text nodes in range.
+        const [startB, startC] = range.start.path;
+        const [endB, endC] = range.end.path;
+
+        for (let b = startB; b <= endB; b++) {
+            const block = newState.doc.children[b];
+            if (block.type === 'code') continue; // Schema validation: no inline marks in code
+
+            const startChild = (b === startB) ? startC : 0;
+            const endChild = (b === endB) ? endC : block.children.length - 1;
+
+            for (let c = startChild; c <= endChild; c++) {
+                const node = block.children[c];
+                if (!node.marks.includes(mark)) {
+                    node.marks.push(mark);
+                }
+            }
+        }
+        return normalizeTree(newState);
     }
     default:
       return newState;
@@ -164,63 +204,86 @@ export function reducer(state, transaction) {
 }
 
 function deleteRange(state, range) {
-    const startIndex = state.blocks.findIndex(b => b.id === range.startBlockId);
-    const endIndex = state.blocks.findIndex(b => b.id === range.endBlockId);
+    const [startB, startC] = range.start.path;
+    const [endB, endC] = range.end.path;
 
-    if (startIndex === -1 || endIndex === -1) return state;
-
-    if (startIndex === endIndex) {
-        const block = state.blocks[startIndex];
-        if (block.type === 'code') {
-            const text = block.data.code || '';
-            block.data.code = text.slice(0, range.startOffset) + text.slice(range.endOffset);
+    if (startB === endB) {
+        const block = state.doc.children[startB];
+        if (startC === endC) {
+            const node = block.children[startC];
+            node.text = node.text.slice(0, range.start.offset) + node.text.slice(range.end.offset);
         } else {
-            const text = block.data.text || '';
-            block.data.text = text.slice(0, range.startOffset) + text.slice(range.endOffset);
+            const sNode = block.children[startC];
+            const eNode = block.children[endC];
+            sNode.text = sNode.text.slice(0, range.start.offset);
+            eNode.text = eNode.text.slice(range.end.offset);
+            // remove nodes in between
+            block.children.splice(startC + 1, endC - startC - 1);
         }
-        state.selection = {
-            anchorBlock: block.id, anchorOffset: range.startOffset,
-            focusBlock: block.id, focusOffset: range.startOffset
-        };
-        return ensureInvariant(state);
+    } else {
+        // Cross block delete
+        const sBlock = state.doc.children[startB];
+        const eBlock = state.doc.children[endB];
+
+        const sNode = sBlock.children[startC];
+        sNode.text = sNode.text.slice(0, range.start.offset);
+        sBlock.children.splice(startC + 1); // remove rest
+
+        const eNode = eBlock.children[endC];
+        eNode.text = eNode.text.slice(range.end.offset);
+        eBlock.children.splice(0, endC); // remove preceding
+
+        // Merge remaining end children into start block (if not code)
+        if (sBlock.type !== 'code' && eBlock.type !== 'code') {
+            sBlock.children.push(...eBlock.children);
+        }
+
+        // Remove blocks in between and endBlock
+        state.doc.children.splice(startB + 1, endB - startB);
     }
-
-    // Cross-block delete
-    const startB = state.blocks[startIndex];
-    const endB = state.blocks[endIndex];
-
-    // Check for complex blocks in selection. If code block is involved, we treat it carefully
-    let newText = '';
-    if (startB.type !== 'code') {
-        newText += (startB.data.text || '').slice(0, range.startOffset);
-    }
-    if (endB.type !== 'code') {
-        newText += (endB.data.text || '').slice(range.endOffset);
-    }
-
-    // Convert first block to paragraph with merged text, or update if it's already a paragraph
-    state.blocks[startIndex] = {
-        id: startB.id,
-        type: 'paragraph',
-        data: { text: newText }
-    };
-
-    // Remove intermediate blocks and end block
-    state.blocks.splice(startIndex + 1, endIndex - startIndex);
 
     state.selection = {
-        anchorBlock: startB.id, anchorOffset: range.startOffset,
-        focusBlock: startB.id, focusOffset: range.startOffset
+        anchor: { path: [startB, startC], offset: range.start.offset },
+        focus: { path: [startB, startC], offset: range.start.offset }
     };
 
+    return state;
+}
+
+function normalizeTree(state) {
+    // Merge adjacent text nodes with identical marks, remove empty text nodes
+    state.doc.children.forEach(block => {
+        if (!block.children) return;
+        for (let i = block.children.length - 1; i >= 0; i--) {
+            const node = block.children[i];
+            // Don't remove the very last empty node if block is completely empty
+            if (node.text === '' && block.children.length > 1) {
+                block.children.splice(i, 1);
+                // We'd need to adjust selection paths here if we remove a node
+                // For simplicity in this demo, we assume selection is managed prior to cleanup
+            } else if (i > 0) {
+                const prev = block.children[i - 1];
+                if (JSON.stringify(prev.marks.sort()) === JSON.stringify(node.marks.sort())) {
+                    prev.text += node.text;
+                    block.children.splice(i, 1);
+                }
+            }
+        }
+        if (block.children.length === 0) {
+            block.children.push({ type: 'text', text: '', marks: [] });
+        }
+    });
     return ensureInvariant(state);
 }
 
 function ensureInvariant(state) {
-    if (state.blocks.length === 0) {
-        const newBlockId = generateId();
-        state.blocks.push({ id: newBlockId, type: 'paragraph', data: { text: '' } });
-        state.selection = { anchorBlock: newBlockId, anchorOffset: 0, focusBlock: newBlockId, focusOffset: 0 };
+    if (state.doc.children.length === 0) {
+        state.doc.children.push({
+            id: generateId(),
+            type: 'paragraph',
+            children: [{ type: 'text', text: '', marks: [] }]
+        });
+        state.selection = { anchor: { path: [0, 0], offset: 0 }, focus: { path: [0, 0], offset: 0 } };
     }
     return state;
 }

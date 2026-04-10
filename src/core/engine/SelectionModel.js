@@ -2,32 +2,41 @@ export class SelectionModel {
   static normalize(state) {
     if (!state.selection) return null;
 
-    const { anchorBlock, anchorOffset, focusBlock, focusOffset } = state.selection;
+    const { anchor, focus } = state.selection;
 
-    const anchorIndex = state.blocks.findIndex(b => b.id === anchorBlock);
-    const focusIndex = state.blocks.findIndex(b => b.id === focusBlock);
+    if (!anchor || !focus || !anchor.path || !focus.path) return null;
 
-    if (anchorIndex === -1 || focusIndex === -1) return null;
+    const cmp = this.comparePoints(anchor, focus);
 
-    let startBlockId, startOffset, endBlockId, endOffset;
-
-    if (anchorIndex < focusIndex) {
-      startBlockId = anchorBlock; startOffset = anchorOffset;
-      endBlockId = focusBlock; endOffset = focusOffset;
-    } else if (anchorIndex > focusIndex) {
-      startBlockId = focusBlock; startOffset = focusOffset;
-      endBlockId = anchorBlock; endOffset = anchorOffset;
+    let start, end;
+    if (cmp <= 0) {
+        start = anchor;
+        end = focus;
     } else {
-      startBlockId = anchorBlock;
-      endBlockId = anchorBlock;
-      startOffset = Math.min(anchorOffset, focusOffset);
-      endOffset = Math.max(anchorOffset, focusOffset);
+        start = focus;
+        end = anchor;
     }
 
     return {
-      startBlockId, startOffset,
-      endBlockId, endOffset,
-      isCollapsed: startBlockId === endBlockId && startOffset === endOffset
+      start,
+      end,
+      isCollapsed: cmp === 0
     };
+  }
+
+  static comparePoints(p1, p2) {
+      // p.path is [blockIndex, childIndex]
+      const [b1, c1] = p1.path;
+      const [b2, c2] = p2.path;
+
+      if (b1 !== b2) return b1 - b2;
+
+      // If same block, compare child index
+      if (c1 !== undefined && c2 !== undefined) {
+          if (c1 !== c2) return c1 - c2;
+      }
+
+      // If same child, compare offset
+      return p1.offset - p2.offset;
   }
 }
